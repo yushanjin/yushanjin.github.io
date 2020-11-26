@@ -1,6 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>kind快速部署Kubernetes环境</title>
+    <url>/2020/11/26/kind%E5%BF%AB%E9%80%9F%E9%83%A8%E7%BD%B2Kubernetes%E7%8E%AF%E5%A2%83/</url>
+    <content><![CDATA[<h1 id="什么是kind"><a href="#什么是kind" class="headerlink" title="什么是kind"></a>什么是kind</h1><p>kind:Kubernetes In Docker，顾名思义，就是将kubernetes所需要的所有组件，全部部署在一个docker容器中，是一套开箱即用的kubernetes环境搭建方案。使用kind搭建的集群无法在生产中使用，但是如果你只是想在本地测试或者开发使用，不想占用太多的资源，那么使用kind是不错的选择。同样，kind还可以很方便的帮你本地的kubernetes源代码打成对应的镜像，方便测试。</p>
+<p>GitHub: <a href="https://github.com/kubernetes-sigs/kind">https://github.com/kubernetes-sigs/kind</a></p>
+<p>Documentation: <a href="https://kind.sigs.k8s.io/">https://kind.sigs.k8s.io/</a></p>
+<h1 id="安装kind"><a href="#安装kind" class="headerlink" title="安装kind"></a>安装kind</h1><p>以Linux下安装为例：</p>
+<p>···<br>curl -Lo ./kind <a href="https://kind.sigs.k8s.io/dl/v0.9.0/kind-linux-amd64">https://kind.sigs.k8s.io/dl/v0.9.0/kind-linux-amd64</a><br>chmod +x ./kind<br>mv ./kind /usr/local/bin/kind<br>···</p>
+<h1 id="创建集群"><a href="#创建集群" class="headerlink" title="创建集群"></a>创建集群</h1><p>···<br>kind create cluster<br>···</p>
+]]></content>
+      <categories>
+        <category>云原生</category>
+      </categories>
+      <tags>
+        <tag>kubernetes</tag>
+        <tag>云原生</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Ubuntu搭建Kubernetes集群</title>
     <url>/2020/11/26/kubernetes_install_on_ubuntu/</url>
     <content><![CDATA[<p>本文介绍如何在Ubuntu系统上搭建Kubernetes集群。</p>
@@ -72,9 +90,9 @@
         <category>kubernetes</category>
       </categories>
       <tags>
+        <tag>kubernetes</tag>
         <tag>云计算</tag>
         <tag>边缘计算</tag>
-        <tag>kubernetes</tag>
       </tags>
   </entry>
 </search>
