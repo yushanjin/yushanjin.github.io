@@ -6,7 +6,7 @@
   <link href="https://yushanjin.github.io/atom.xml" rel="self"/>
   
   <link href="https://yushanjin.github.io/"/>
-  <updated>2020-11-26T09:11:07.718Z</updated>
+  <updated>2020-11-26T09:20:43.215Z</updated>
   <id>https://yushanjin.github.io/</id>
   
   <author>
@@ -21,9 +21,9 @@
     <link href="https://yushanjin.github.io/2020/11/26/kind%E5%BF%AB%E9%80%9F%E9%83%A8%E7%BD%B2Kubernetes%E7%8E%AF%E5%A2%83/"/>
     <id>https://yushanjin.github.io/2020/11/26/kind%E5%BF%AB%E9%80%9F%E9%83%A8%E7%BD%B2Kubernetes%E7%8E%AF%E5%A2%83/</id>
     <published>2020-11-26T08:56:12.000Z</published>
-    <updated>2020-11-26T09:11:07.718Z</updated>
+    <updated>2020-11-26T09:20:43.215Z</updated>
     
-    <content type="html"><![CDATA[<h1 id="什么是kind"><a href="#什么是kind" class="headerlink" title="什么是kind"></a>什么是kind</h1><p>kind:Kubernetes In Docker，顾名思义，就是将kubernetes所需要的所有组件，全部部署在一个docker容器中，是一套开箱即用的kubernetes环境搭建方案。使用kind搭建的集群无法在生产中使用，但是如果你只是想在本地测试或者开发使用，不想占用太多的资源，那么使用kind是不错的选择。同样，kind还可以很方便的帮你本地的kubernetes源代码打成对应的镜像，方便测试。</p><p>GitHub: <a href="https://github.com/kubernetes-sigs/kind">https://github.com/kubernetes-sigs/kind</a></p><p>Documentation: <a href="https://kind.sigs.k8s.io/">https://kind.sigs.k8s.io/</a></p><h1 id="安装kind"><a href="#安装kind" class="headerlink" title="安装kind"></a>安装kind</h1><p>以Linux下安装为例：</p><p>···<br>curl -Lo ./kind <a href="https://kind.sigs.k8s.io/dl/v0.9.0/kind-linux-amd64">https://kind.sigs.k8s.io/dl/v0.9.0/kind-linux-amd64</a><br>chmod +x ./kind<br>mv ./kind /usr/local/bin/kind<br>···</p><h1 id="创建集群"><a href="#创建集群" class="headerlink" title="创建集群"></a>创建集群</h1><p>···<br>kind create cluster<br>···</p>]]></content>
+    <content type="html"><![CDATA[<h1 id="什么是kind"><a href="#什么是kind" class="headerlink" title="什么是kind"></a>什么是kind</h1><p>kind:Kubernetes In Docker，顾名思义，就是将kubernetes所需要的所有组件，全部部署在一个docker容器中，是一套开箱即用的kubernetes环境搭建方案。使用kind搭建的集群无法在生产中使用，但是如果你只是想在本地测试或者开发使用，不想占用太多的资源，那么使用kind是不错的选择。同样，kind还可以很方便的帮你本地的kubernetes源代码打成对应的镜像，方便测试。</p><p>GitHub: <a href="https://github.com/kubernetes-sigs/kind">https://github.com/kubernetes-sigs/kind</a></p><p>Documentation: <a href="https://kind.sigs.k8s.io/">https://kind.sigs.k8s.io/</a></p><h1 id="安装kind"><a href="#安装kind" class="headerlink" title="安装kind"></a>安装kind</h1><p>以Linux下安装为例：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">curl -Lo .&#x2F;kind https:&#x2F;&#x2F;kind.sigs.k8s.io&#x2F;dl&#x2F;v0.9.0&#x2F;kind-linux-amd64</span><br><span class="line">chmod +x .&#x2F;kind</span><br><span class="line">mv .&#x2F;kind &#x2F;usr&#x2F;local&#x2F;bin&#x2F;kind</span><br></pre></td></tr></table></figure><h1 id="创建集群"><a href="#创建集群" class="headerlink" title="创建集群"></a>创建集群</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kind create cluster</span><br></pre></td></tr></table></figure><p>该命令将默认创建名为kind的集群</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kind create cluster --name test</span><br></pre></td></tr></table></figure><p>该命令将创建名为test的集群</p><h1 id="查询集群"><a href="#查询集群" class="headerlink" title="查询集群"></a>查询集群</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kind get clusters</span><br></pre></td></tr></table></figure><h1 id="删除集群"><a href="#删除集群" class="headerlink" title="删除集群"></a>删除集群</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kind delete cluster --name test</span><br></pre></td></tr></table></figure><p>删除名为test的集群，–name未指定的话，将默认删除kind集群</p>]]></content>
     
     
     <summary type="html">什么是kind
