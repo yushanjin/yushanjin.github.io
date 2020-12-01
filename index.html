@@ -84,6 +84,56 @@
     
 
       <article class="recent-post-item">
+        <a class="title" href="/2020/12/01/如何配置kubernetes的pod从私有仓库拉取镜像/"><h2>如何配置kubernetes的pod从私有仓库拉取镜像</h2></a>
+        <div class="post-meta">
+          
+          <time class="time" datetime="2020-12-01T07:30:19.000Z">
+            2020-12-01
+          </time>
+          
+          <span class="slash">/</span>
+          
+          <ul class="index-tag-list" itemprop="keywords"><li class="index-tag-list-item"><a class="index-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="index-tag-list-item"><a class="index-tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li></ul>
+          
+
+        </div>
+
+        
+          <div class="post-excerpt">
+            在实际使用中，用户往往搭建了自己的私有镜像仓库。kubernetes用户创建pod的过程中，如何从私有镜像仓库拉取容器镜像？
+
+本文重点要介绍：如何让使用secret从私有的 Docker 镜像仓库或代码仓库拉取镜像来创建 Pod
+
+前提条件：
+ 1. kubernetes集群
+    
+    
+ 2. docker私有镜像仓库或者docker hub上有Docker ID（这里使用Docker ID来演示）
+    
+    
+
+创建secret有两种方法：
+
+1. 使用config.json文件
+
+2. 直接使用用户名+密码
+
+生成config.json文件
+1
+2
+3
+4
+5
+6
+7
+
+          </div>
+        
+        <a class="more" href="/2020/12/01/如何配置kubernetes的pod从私有仓库拉取镜像/"> 阅读全文〉</a>
+      </article>
+    
+
+      <article class="recent-post-item">
         <a class="title" href="/2020/12/01/kubernetes的python-client体验/"><h2>kubernetes的python-client体验</h2></a>
         <div class="post-meta">
           
