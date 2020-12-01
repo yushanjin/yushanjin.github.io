@@ -218,7 +218,9 @@
 
 <h1 id="pod指定imagePullSecrets为上述创建的secret"><a href="#pod指定imagePullSecrets为上述创建的secret" class="headerlink" title="pod指定imagePullSecrets为上述创建的secret"></a>pod指定imagePullSecrets为上述创建的secret</h1><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: private-reg</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">  - name: private-reg-container</span><br><span class="line">    image: xxxxxxx:yyyy</span><br><span class="line">  imagePullSecrets:</span><br><span class="line">  - name: regcred</span><br></pre></td></tr></table></figure>
 
-<p>参考：<a href="https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry">https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry</a></p>
+<p>参考：</p>
+<p>(1) <a href="https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry">https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry</a></p>
+<p>(2) <a href="https://kubernetes.io/docs/concepts/containers/images/">https://kubernetes.io/docs/concepts/containers/images/</a></p>
 ]]></content>
       <categories>
         <category>registry</category>
