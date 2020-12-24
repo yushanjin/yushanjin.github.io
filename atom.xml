@@ -6,7 +6,7 @@
   <link href="https://yushanjin.github.io/atom.xml" rel="self"/>
   
   <link href="https://yushanjin.github.io/"/>
-  <updated>2020-12-02T07:35:21.898Z</updated>
+  <updated>2020-12-24T01:50:24.435Z</updated>
   <id>https://yushanjin.github.io/</id>
   
   <author>
@@ -15,6 +15,27 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>有用的链接</title>
+    <link href="https://yushanjin.github.io/2020/12/24/%E6%9C%89%E7%94%A8%E7%9A%84%E9%93%BE%E6%8E%A5/"/>
+    <id>https://yushanjin.github.io/2020/12/24/%E6%9C%89%E7%94%A8%E7%9A%84%E9%93%BE%E6%8E%A5/</id>
+    <published>2020-12-24T01:45:03.000Z</published>
+    <updated>2020-12-24T01:50:24.435Z</updated>
+    
+    <content type="html"><![CDATA[<pre><code>| 技术        | 链接    |  简介  || --------   | -----:   | :----: || SimpleCV        | http://simplecv.org/      |   开源的机器视觉库（对OpenCV python库的封装，对python3不支持）    || xxx        | $1      |   6    || 草莓        | $1      |   7    |</code></pre>]]></content>
+    
+    
+    <summary type="html">| 技术        | 链接    |  简介  |
+| --------   | -----:   | :----: |
+| SimpleCV        | http://simplecv.org/      |   开源的机器视觉库（对OpenCV python库的封装，对python3不支持）    |
+| xxx        | $1      |   6    |
+| 草莓        | $1      |   7    |</summary>
+    
+    
+    
+    
+  </entry>
   
   <entry>
     <title>kubernetes部署httpd服务</title>

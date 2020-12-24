@@ -253,6 +253,16 @@
       </tags>
   </entry>
   <entry>
+    <title>有用的链接</title>
+    <url>/2020/12/24/%E6%9C%89%E7%94%A8%E7%9A%84%E9%93%BE%E6%8E%A5/</url>
+    <content><![CDATA[<pre><code>| 技术        | 链接    |  简介  |
+| --------   | -----:   | :----: |
+| SimpleCV        | http://simplecv.org/      |   开源的机器视觉库（对OpenCV python库的封装，对python3不支持）    |
+| xxx        | $1      |   6    |
+| 草莓        | $1      |   7    |</code></pre>
+]]></content>
+  </entry>
+  <entry>
     <title>kind快速部署Kubernetes环境</title>
     <url>/2020/11/26/kind%E5%BF%AB%E9%80%9F%E9%83%A8%E7%BD%B2Kubernetes%E7%8E%AF%E5%A2%83/</url>
     <content><![CDATA[<h1 id="什么是kind"><a href="#什么是kind" class="headerlink" title="什么是kind"></a>什么是kind</h1><p>kind：Kubernetes In Docker，顾名思义，就是将kubernetes所需要的所有组件，全部部署在一个docker容器中，是一套开箱即用的kubernetes环境搭建方案。使用kind搭建的集群无法在生产中使用，但是如果你只是想在本地测试或者开发使用，不想占用太多的资源，那么使用kind是不错的选择。同样，kind还可以很方便的帮你本地的kubernetes源代码打成对应的镜像，方便测试。</p>
