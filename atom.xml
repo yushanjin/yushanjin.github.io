@@ -6,7 +6,7 @@
   <link href="https://yushanjin.github.io/atom.xml" rel="self"/>
   
   <link href="https://yushanjin.github.io/"/>
-  <updated>2020-12-24T01:50:24.435Z</updated>
+  <updated>2020-12-24T01:54:24.821Z</updated>
   <id>https://yushanjin.github.io/</id>
   
   <author>
@@ -21,16 +21,12 @@
     <link href="https://yushanjin.github.io/2020/12/24/%E6%9C%89%E7%94%A8%E7%9A%84%E9%93%BE%E6%8E%A5/"/>
     <id>https://yushanjin.github.io/2020/12/24/%E6%9C%89%E7%94%A8%E7%9A%84%E9%93%BE%E6%8E%A5/</id>
     <published>2020-12-24T01:45:03.000Z</published>
-    <updated>2020-12-24T01:50:24.435Z</updated>
+    <updated>2020-12-24T01:54:24.821Z</updated>
     
-    <content type="html"><![CDATA[<pre><code>| 技术        | 链接    |  简介  || --------   | -----:   | :----: || SimpleCV        | http://simplecv.org/      |   开源的机器视觉库（对OpenCV python库的封装，对python3不支持）    || xxx        | $1      |   6    || 草莓        | $1      |   7    |</code></pre>]]></content>
+    <content type="html"><![CDATA[<table><thead><tr><th>技术</th><th align="right">链接</th><th align="center">简介</th></tr></thead><tbody><tr><td>SimpleCV</td><td align="right"><a href="http://simplecv.org/">http://simplecv.org/</a></td><td align="center">开源的机器视觉库（对OpenCV python库的封装，对python3不支持）</td></tr><tr><td>xxx</td><td align="right">$1</td><td align="center">6</td></tr><tr><td>草莓</td><td align="right">$1</td><td align="center">7</td></tr></tbody></table>]]></content>
     
     
-    <summary type="html">| 技术        | 链接    |  简介  |
-| --------   | -----:   | :----: |
-| SimpleCV        | http://simplecv.org/      |   开源的机器视觉库（对OpenCV python库的封装，对python3不支持）    |
-| xxx        | $1      |   6    |
-| 草莓        | $1      |   7    |</summary>
+    <summary type="html">技术链接简介SimpleCVhttp://simplecv.org/开源的机器视觉库（对OpenCV python库的封装，对python3不支持）xxx$16草莓$17</summary>
     
     
     
