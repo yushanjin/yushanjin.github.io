@@ -15,11 +15,11 @@
   
 
   
-    <meta name="description" content="tags" />
+    <meta name="description" content="Yushanjin&#39;s Blog,Welcome To My Blog" />
   
   
   <link rel="icon" type="image/x-icon" href="/images/logo.jpg">
-  <title>tags [ Yushanjin&#39;s Blog ]</title>
+  <title>category: go [ Yushanjin&#39;s Blog ]</title>
   
     <!-- stylesheets list from config.yml -->
     
@@ -51,7 +51,7 @@
           
       
           
-            <li class="pure-menu-item actived"><a href="/tags" class="pure-menu-link">标签</a></li>
+            <li class="pure-menu-item"><a href="/tags" class="pure-menu-link">标签</a></li>
           
       
           
@@ -78,17 +78,60 @@
 
   <div class="container" id="content-outer">
     <div class="inner" id="content-inner">
-      <article class="post page" id="page">
-  <header class="post-header text-center">
-  </header>
-  <div class="post-content">
-    
-          
-                <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub/" rel="tag">GitHub</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/edgex/" rel="tag">edgex</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/go/" rel="tag">go</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/helm/" rel="tag">helm</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kuiper/" rel="tag">kuiper</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/python/" rel="tag">python</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/" rel="tag">云原生</a><span class="tag-list-count">1</span></li></ul>
-          
       
-  </div>
-</article>
+
+  
+  
+    
+    
+    <section class="post page archives">
+      <h3 class="archive-year-wrap">
+        <a href="/archives/2021" class="archive-year">
+          2021
+        </a>
+      </h3>
+      <div class="archives">
+  
+  <div class="archive" >
+  <a class="post-go" href="/2021/01/27/go中的defer关键字/">
+    <div>
+      <span class="date">
+        01-27
+      </span>
+      <span class="slash">/</span>
+      go中的defer关键字
+    </div>
+
+    <!--<div class="excerpt">-->
+      <!--摘自：https://tiancaiamao.gitbooks.io/go-internals/content/zh/03.4.html
+
+defer和go一样都是Go语言提供的关键字。defer用于资源的释放，会在函数返回之前进行调用。一般采用如下模式：
+
+1
+2
+3
+4
+5
+
+
+f,err := os.Open(filename)
+if err != nil {
+    panic(err)
+}
+defer f.Close()
+
+
+如果有多个defer表达式，调用顺序类似于栈，越后面的defer表达式越先被调用。
+
+不过如果对defer的了解不够深入，使用起来可能会踩到一些坑，尤其是跟带命-->
+    <!--</div>-->
+  </a>
+
+</div>
+
+
+  </div></section>
+
     </div>
 
     

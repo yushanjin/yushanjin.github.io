@@ -86,6 +86,57 @@
     
     <section class="post page archives">
       <h3 class="archive-year-wrap">
+        <a href="/archives/2021" class="archive-year">
+          2021
+        </a>
+      </h3>
+      <div class="archives">
+  
+  <div class="archive" >
+  <a class="post-go" href="/2021/01/27/go中的defer关键字/">
+    <div>
+      <span class="date">
+        01-27
+      </span>
+      <span class="slash">/</span>
+      go中的defer关键字
+    </div>
+
+    <!--<div class="excerpt">-->
+      <!--摘自：https://tiancaiamao.gitbooks.io/go-internals/content/zh/03.4.html
+
+defer和go一样都是Go语言提供的关键字。defer用于资源的释放，会在函数返回之前进行调用。一般采用如下模式：
+
+1
+2
+3
+4
+5
+
+
+f,err := os.Open(filename)
+if err != nil {
+    panic(err)
+}
+defer f.Close()
+
+
+如果有多个defer表达式，调用顺序类似于栈，越后面的defer表达式越先被调用。
+
+不过如果对defer的了解不够深入，使用起来可能会踩到一些坑，尤其是跟带命-->
+    <!--</div>-->
+  </a>
+
+</div>
+
+  
+  
+    
+      </div></section>
+    
+    
+    <section class="post page archives">
+      <h3 class="archive-year-wrap">
         <a href="/archives/2020" class="archive-year">
           2020
         </a>
