@@ -64,142 +64,26 @@
   <entry>
     <title>containerd with kata-container</title>
     <url>/2021/02/07/containerd-with-kata-container/</url>
-    <content><![CDATA[<p>摘自：<a href="https://github.com/kata-containers/documentation/blob/master/how-to/containerd-kata.md">https://github.com/kata-containers/documentation/blob/master/how-to/containerd-kata.md</a></p>
-<h1 id="How-to-use-Kata-Containers-and-Containerd"><a href="#How-to-use-Kata-Containers-and-Containerd" class="headerlink" title="How to use Kata Containers and Containerd"></a>How to use Kata Containers and Containerd</h1><ul>
-<li><a href="#concepts">Concepts</a><ul>
-<li><a href="#kubernetes-runtimeclass">Kubernetes <code>RuntimeClass</code></a></li>
-<li><a href="#containerd-runtime-v2-api-shim-v2-api">Containerd Runtime V2 API: Shim V2 API</a></li>
-</ul>
-</li>
-<li><a href="#install">Install</a><ul>
-<li><a href="#install-kata-containers">Install Kata Containers</a></li>
-<li><a href="#install-containerd-with-cri-plugin">Install containerd with CRI plugin</a></li>
-<li><a href="#install-cni-plugins">Install CNI plugins</a></li>
-<li><a href="#install-cri-tools">Install <code>cri-tools</code></a></li>
-</ul>
-</li>
-<li><a href="#configuration">Configuration</a><ul>
-<li><a href="#configure-containerd-to-use-kata-containers">Configure containerd to use Kata Containers</a><ul>
-<li><a href="#kata-containers-as-a-runtimeclass">Kata Containers as a <code>RuntimeClass</code></a></li>
-<li><a href="#kata-containers-as-the-runtime-for-untrusted-workload">Kata Containers as the runtime for untrusted workload</a></li>
-</ul>
-</li>
-<li><a href="#kata-containers-as-the-default-runtime">Kata Containers as the default runtime</a></li>
-<li><a href="#configuration-for-cri-tools">Configuration for <code>cri-tools</code></a></li>
-</ul>
-</li>
-<li><a href="#run">Run</a><ul>
-<li><a href="#launch-containers-with-ctr-command-line">Launch containers with <code>ctr</code> command line</a></li>
-<li><a href="#launch-pods-with-crictl-command-line">Launch Pods with <code>crictl</code> command line</a></li>
-</ul>
-</li>
-</ul>
-<p>This document covers the installation and configuration of <a href="https://containerd.io/">containerd</a><br>and <a href="https://katacontainers.io/">Kata Containers</a>. The containerd provides not only the <code>ctr</code><br>command line tool, but also the <a href="https://kubernetes.io/blog/2016/12/container-runtime-interface-cri-in-kubernetes/">CRI</a><br>interface for <a href="https://kubernetes.io/">Kubernetes</a> and other CRI clients.</p>
-<p>This document is primarily written for Kata Containers v1.5.0-rc2 or above, and containerd v1.2.0 or above.<br>Previous versions are addressed here, but we suggest users upgrade to the newer versions for better support.</p>
-<h2 id="Concepts"><a href="#Concepts" class="headerlink" title="Concepts"></a>Concepts</h2><h3 id="Kubernetes-RuntimeClass"><a href="#Kubernetes-RuntimeClass" class="headerlink" title="Kubernetes RuntimeClass"></a>Kubernetes <code>RuntimeClass</code></h3><p><a href="https://kubernetes.io/docs/concepts/containers/runtime-class/"><code>RuntimeClass</code></a> is a Kubernetes feature first<br>introduced in Kubernetes 1.12 as alpha. It is the feature for selecting the container runtime configuration to<br>use to run a pod’s containers. This feature is supported in <code>containerd</code> since <a href="https://github.com/containerd/containerd/releases/tag/v1.2.0">v1.2.0</a>.</p>
-<p>Before the <code>RuntimeClass</code> was introduced, Kubernetes was not aware of the difference of runtimes on the node. <code>kubelet</code><br>creates Pod sandboxes and containers through CRI implementations, and treats all the Pods equally. However, there<br>are requirements to run trusted Pods (i.e. Kubernetes plugin) in a native container like runc, and to run untrusted<br>workloads with isolated sandboxes (i.e. Kata Containers).</p>
-<p>As a result, the CRI implementations extended their semantics for the requirements:</p>
-<ul>
-<li>At the beginning, <a href="https://github.com/kubernetes/frakti">Frakti</a> checks the network configuration of a Pod, and<br>treat Pod with <code>host</code> network as trusted, while others are treated as untrusted.</li>
-<li>The containerd introduced an annotation for untrusted Pods since <a href="https://github.com/containerd/cri/blob/v1.0.0-rc.0/docs/config.md">v1.0</a>:<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">annotations:</span></span><br><span class="line">   <span class="attr">io.kubernetes.cri.untrusted-workload:</span> <span class="string">&quot;true&quot;</span></span><br></pre></td></tr></table></figure></li>
-<li>Similarly, CRI-O introduced the annotation <code>io.kubernetes.cri-o.TrustedSandbox</code> for untrusted Pods.</li>
-</ul>
-<p>To eliminate the complexity of user configuration introduced by the non-standardized annotations and provide<br>extensibility, <code>RuntimeClass</code> was introduced. This gives users the ability to affect the runtime behavior<br>through <code>RuntimeClass</code> without the knowledge of the CRI daemons. We suggest that users with multiple runtimes<br>use <code>RuntimeClass</code> instead of the deprecated annotations.</p>
-<h3 id="Containerd-Runtime-V2-API-Shim-V2-API"><a href="#Containerd-Runtime-V2-API-Shim-V2-API" class="headerlink" title="Containerd Runtime V2 API: Shim V2 API"></a>Containerd Runtime V2 API: Shim V2 API</h3><p>The <a href="https://github.com/kata-containers/runtime/tree/master/containerd-shim-v2"><code>containerd-shim-kata-v2</code> (short as <code>shimv2</code> in this documentation)</a><br>implements the <a href="https://github.com/containerd/containerd/tree/master/runtime/v2">Containerd Runtime V2 (Shim API)</a> for Kata.<br>With <code>shimv2</code>, Kubernetes can launch Pod and OCI-compatible containers with one shim per Pod. Prior to <code>shimv2</code>, <code>2N+1</code><br>shims (i.e. a <code>containerd-shim</code> and a <code>kata-shim</code> for each container and the Pod sandbox itself) and no standalone <code>kata-proxy</code><br>process were used, even with VSOCK not available.</p>
-<p><img src="../design/arch-images/shimv2.svg" alt="Kubernetes integration with shimv2"></p>
-<p>The shim v2 is introduced in containerd <a href="https://github.com/containerd/containerd/releases/tag/v1.2.0">v1.2.0</a> and Kata <code>shimv2</code><br>is implemented in Kata Containers v1.5.0.</p>
-<h2 id="Install"><a href="#Install" class="headerlink" title="Install"></a>Install</h2><h3 id="Install-Kata-Containers"><a href="#Install-Kata-Containers" class="headerlink" title="Install Kata Containers"></a>Install Kata Containers</h3><p>Follow the instructions to <a href="https://github.com/kata-containers/documentation/blob/master/install/README.md">install Kata Containers</a>.</p>
-<h3 id="Install-containerd-with-CRI-plugin"><a href="#Install-containerd-with-CRI-plugin" class="headerlink" title="Install containerd with CRI plugin"></a>Install containerd with CRI plugin</h3><blockquote>
-<p><strong>Note:</strong> <code>cri</code> is a native plugin of containerd 1.1 and above. It is built into containerd and enabled by default.<br>You do not need to install <code>cri</code> if you have containerd 1.1 or above. Just remove the <code>cri</code> plugin from the list of<br><code>disabled_plugins</code> in the containerd configuration file (<code>/etc/containerd/config.toml</code>).</p>
-</blockquote>
-<p>Follow the instructions from the <a href="http://github.com/containerd/cri/blob/master/docs/installation.md">CRI installation guide</a>.</p>
-<p>Then, check if <code>containerd</code> is now available:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ <span class="built_in">command</span> -v containerd</span><br></pre></td></tr></table></figure>
+    <content><![CDATA[<p>参考：<a href="https://github.com/kata-containers/documentation/blob/master/how-to/containerd-kata.md">https://github.com/kata-containers/documentation/blob/master/how-to/containerd-kata.md</a></p>
+<h1 id="前提条件"><a href="#前提条件" class="headerlink" title="前提条件"></a>前提条件</h1><p>已安装kata container及containerd</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">root@ubuntu-001:~# kata-runtime --version</span><br><span class="line">kata-runtime  : 1.13.0-alpha0</span><br><span class="line">   commit   : &lt;&lt;unknown&gt;&gt;</span><br><span class="line">   OCI specs: 1.0.1-dev</span><br><span class="line"></span><br><span class="line">root@ubuntu-001:~# containerd --version</span><br><span class="line">containerd containerd.io 1.4.3 269548fa27e0089a8b8278fc4fc781d7f65a939b</span><br><span class="line"></span><br><span class="line">root@ubuntu-001:~# ctr --version</span><br><span class="line">ctr containerd.io 1.4.3</span><br></pre></td></tr></table></figure>
+<p>注意：</p>
+<p>containerd在安装docker（新版本docker）已经作为docker依赖项安装了</p>
+<p>ctr是containerd的命令行工具（containerd CLI）</p>
+<p>cri is a native plugin of containerd 1.1 and above. It is built into containerd and enabled by default. You do not need to install cri if you have containerd 1.1 or above. Just remove the cri plugin from the list of disabled_plugins in the containerd configuration file (/etc/containerd/config.toml).</p>
+<h1 id="配置containerd配置文件"><a href="#配置containerd配置文件" class="headerlink" title="配置containerd配置文件"></a>配置containerd配置文件</h1><p>1、获取containerd默认配置</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">root@ubuntu-001:~# containerd config default &gt; &#x2F;etc&#x2F;containerd&#x2F;config.toml</span><br></pre></td></tr></table></figure>
 
-<h3 id="Install-CNI-plugins"><a href="#Install-CNI-plugins" class="headerlink" title="Install CNI plugins"></a>Install CNI plugins</h3><blockquote>
-<p><strong>Note:</strong> You do not need to install CNI plugins if you do not want to use containerd with Kubernetes.<br>If you have installed Kubernetes with <code>kubeadm</code>, you might have already installed the CNI plugins.</p>
-</blockquote>
-<p>You can manually install CNI plugins as follows:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ go get github.com/containernetworking/plugins</span><br><span class="line">$ <span class="built_in">pushd</span> <span class="variable">$GOPATH</span>/src/github.com/containernetworking/plugins</span><br><span class="line">$ ./build_linux.sh</span><br><span class="line">$ sudo mkdir /opt/cni</span><br><span class="line">$ sudo cp -r bin /opt/cni/</span><br><span class="line">$ <span class="built_in">popd</span></span><br></pre></td></tr></table></figure>
+<p>2、修改/etc/containerd/config.toml，增加kata配置</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">root@ubuntu-001:~# cat &#x2F;etc&#x2F;containerd&#x2F;config.toml </span><br><span class="line">version &#x3D; 2</span><br><span class="line">root &#x3D; &quot;&#x2F;var&#x2F;lib&#x2F;containerd&quot;</span><br><span class="line">state &#x3D; &quot;&#x2F;run&#x2F;containerd&quot;</span><br><span class="line">plugin_dir &#x3D; &quot;&quot;</span><br><span class="line">disabled_plugins &#x3D; []</span><br><span class="line">required_plugins &#x3D; []</span><br><span class="line">oom_score &#x3D; 0</span><br><span class="line"></span><br><span class="line">[grpc]</span><br><span class="line">  address &#x3D; &quot;&#x2F;run&#x2F;containerd&#x2F;containerd.sock&quot;</span><br><span class="line">  tcp_address &#x3D; &quot;&quot;</span><br><span class="line">  tcp_tls_cert &#x3D; &quot;&quot;</span><br><span class="line">  tcp_tls_key &#x3D; &quot;&quot;</span><br><span class="line">  uid &#x3D; 0</span><br><span class="line">  gid &#x3D; 0</span><br><span class="line">  max_recv_message_size &#x3D; 16777216</span><br><span class="line">  max_send_message_size &#x3D; 16777216</span><br><span class="line"></span><br><span class="line">[ttrpc]</span><br><span class="line">  address &#x3D; &quot;&quot;</span><br><span class="line">  uid &#x3D; 0</span><br><span class="line">  gid &#x3D; 0</span><br><span class="line"></span><br><span class="line">[debug]</span><br><span class="line">  address &#x3D; &quot;&quot;</span><br><span class="line">  uid &#x3D; 0</span><br><span class="line">  gid &#x3D; 0</span><br><span class="line">  level &#x3D; &quot;&quot;</span><br><span class="line"></span><br><span class="line">[metrics]</span><br><span class="line">  address &#x3D; &quot;&quot;</span><br><span class="line">  grpc_histogram &#x3D; false</span><br><span class="line"></span><br><span class="line">[cgroup]</span><br><span class="line">  path &#x3D; &quot;&quot;</span><br><span class="line"></span><br><span class="line">[timeouts]</span><br><span class="line">  &quot;io.containerd.timeout.shim.cleanup&quot; &#x3D; &quot;5s&quot;</span><br><span class="line">  &quot;io.containerd.timeout.shim.load&quot; &#x3D; &quot;5s&quot;</span><br><span class="line">  &quot;io.containerd.timeout.shim.shutdown&quot; &#x3D; &quot;3s&quot;</span><br><span class="line">  &quot;io.containerd.timeout.task.state&quot; &#x3D; &quot;2s&quot;</span><br><span class="line"></span><br><span class="line">[plugins]</span><br><span class="line">  [plugins.&quot;io.containerd.gc.v1.scheduler&quot;]</span><br><span class="line">    pause_threshold &#x3D; 0.02</span><br><span class="line">    deletion_threshold &#x3D; 0</span><br><span class="line">    mutation_threshold &#x3D; 100</span><br><span class="line">    schedule_delay &#x3D; &quot;0s&quot;</span><br><span class="line">    startup_delay &#x3D; &quot;100ms&quot;</span><br><span class="line">  [plugins.&quot;io.containerd.grpc.v1.cri&quot;]</span><br><span class="line">    disable_tcp_service &#x3D; true</span><br><span class="line">    stream_server_address &#x3D; &quot;127.0.0.1&quot;</span><br><span class="line">    stream_server_port &#x3D; &quot;0&quot;</span><br><span class="line">    stream_idle_timeout &#x3D; &quot;4h0m0s&quot;</span><br><span class="line">    enable_selinux &#x3D; false</span><br><span class="line">    selinux_category_range &#x3D; 1024</span><br><span class="line">    sandbox_image &#x3D; &quot;registry.aliyuncs.com&#x2F;google_containers&#x2F;pause:3.2&quot;</span><br><span class="line">    stats_collect_period &#x3D; 10</span><br><span class="line">    systemd_cgroup &#x3D; false</span><br><span class="line">    enable_tls_streaming &#x3D; false</span><br><span class="line">    max_container_log_line_size &#x3D; 16384</span><br><span class="line">    disable_cgroup &#x3D; false</span><br><span class="line">    disable_apparmor &#x3D; false</span><br><span class="line">    restrict_oom_score_adj &#x3D; false</span><br><span class="line">    max_concurrent_downloads &#x3D; 3</span><br><span class="line">    disable_proc_mount &#x3D; false</span><br><span class="line">    unset_seccomp_profile &#x3D; &quot;&quot;</span><br><span class="line">    tolerate_missing_hugetlb_controller &#x3D; true</span><br><span class="line">    disable_hugetlb_controller &#x3D; true</span><br><span class="line">    ignore_image_defined_volumes &#x3D; false</span><br><span class="line">    [plugins.&quot;io.containerd.grpc.v1.cri&quot;.containerd]</span><br><span class="line">      snapshotter &#x3D; &quot;overlayfs&quot;</span><br><span class="line">      default_runtime_name &#x3D; &quot;runc&quot;</span><br><span class="line">      no_pivot &#x3D; false</span><br><span class="line">      disable_snapshot_annotations &#x3D; true</span><br><span class="line">      discard_unpacked_layers &#x3D; false</span><br><span class="line">      [plugins.&quot;io.containerd.grpc.v1.cri&quot;.containerd.default_runtime]</span><br><span class="line">        runtime_type &#x3D; &quot;&quot;</span><br><span class="line">        runtime_engine &#x3D; &quot;&quot;</span><br><span class="line">        runtime_root &#x3D; &quot;&quot;</span><br><span class="line">        privileged_without_host_devices &#x3D; false</span><br><span class="line">        base_runtime_spec &#x3D; &quot;&quot;</span><br><span class="line">      [plugins.&quot;io.containerd.grpc.v1.cri&quot;.containerd.untrusted_workload_runtime]</span><br><span class="line">        runtime_type &#x3D; &quot;&quot;</span><br><span class="line">        runtime_engine &#x3D; &quot;&quot;</span><br><span class="line">        runtime_root &#x3D; &quot;&quot;</span><br><span class="line">        privileged_without_host_devices &#x3D; false</span><br><span class="line">        base_runtime_spec &#x3D; &quot;&quot;</span><br><span class="line">      [plugins.&quot;io.containerd.grpc.v1.cri&quot;.containerd.runtimes]</span><br><span class="line">        [plugins.&quot;io.containerd.grpc.v1.cri&quot;.containerd.runtimes.runc]</span><br><span class="line">          runtime_type &#x3D; &quot;io.containerd.runc.v2&quot;</span><br><span class="line">          runtime_engine &#x3D; &quot;&quot;</span><br><span class="line">          runtime_root &#x3D; &quot;&quot;</span><br><span class="line">          privileged_without_host_devices &#x3D; false</span><br><span class="line">          base_runtime_spec &#x3D; &quot;&quot;</span><br><span class="line">          [plugins.&quot;io.containerd.grpc.v1.cri&quot;.containerd.runtimes.runc.options]</span><br><span class="line">        [plugins.&quot;io.containerd.grpc.v1.cri&quot;.containerd.runtimes.kata]</span><br><span class="line">          runtime_type &#x3D; &quot;io.containerd.kata.v2&quot;</span><br><span class="line">          runtime_engine &#x3D; &quot;&quot;</span><br><span class="line">          runtime_root &#x3D; &quot;&quot;</span><br><span class="line">          privileged_without_host_devices &#x3D; false</span><br><span class="line">          base_runtime_spec &#x3D; &quot;&quot;</span><br><span class="line">          [plugins.&quot;io.containerd.grpc.v1.cri&quot;.containerd.runtimes.kata.options]</span><br><span class="line">    [plugins.&quot;io.containerd.grpc.v1.cri&quot;.cni]</span><br><span class="line">      bin_dir &#x3D; &quot;&#x2F;opt&#x2F;cni&#x2F;bin&quot;</span><br><span class="line">      conf_dir &#x3D; &quot;&#x2F;etc&#x2F;cni&#x2F;net.d&quot;</span><br><span class="line">      max_conf_num &#x3D; 1</span><br><span class="line">      conf_template &#x3D; &quot;&quot;</span><br><span class="line">    [plugins.&quot;io.containerd.grpc.v1.cri&quot;.registry]</span><br><span class="line">      [plugins.&quot;io.containerd.grpc.v1.cri&quot;.registry.mirrors]</span><br><span class="line">        [plugins.&quot;io.containerd.grpc.v1.cri&quot;.registry.mirrors.&quot;docker.io&quot;]</span><br><span class="line">          endpoint &#x3D; [&quot;https:&#x2F;&#x2F;registry-1.docker.io&quot;]</span><br><span class="line">    [plugins.&quot;io.containerd.grpc.v1.cri&quot;.image_decryption]</span><br><span class="line">      key_model &#x3D; &quot;&quot;</span><br><span class="line">    [plugins.&quot;io.containerd.grpc.v1.cri&quot;.x509_key_pair_streaming]</span><br><span class="line">      tls_cert_file &#x3D; &quot;&quot;</span><br><span class="line">      tls_key_file &#x3D; &quot;&quot;</span><br><span class="line">  [plugins.&quot;io.containerd.internal.v1.opt&quot;]</span><br><span class="line">    path &#x3D; &quot;&#x2F;opt&#x2F;containerd&quot;</span><br><span class="line">  [plugins.&quot;io.containerd.internal.v1.restart&quot;]</span><br><span class="line">    interval &#x3D; &quot;10s&quot;</span><br><span class="line">  [plugins.&quot;io.containerd.metadata.v1.bolt&quot;]</span><br><span class="line">    content_sharing_policy &#x3D; &quot;shared&quot;</span><br><span class="line">  [plugins.&quot;io.containerd.monitor.v1.cgroups&quot;]</span><br><span class="line">    no_prometheus &#x3D; false</span><br><span class="line">  [plugins.&quot;io.containerd.runtime.v1.linux&quot;]</span><br><span class="line">    shim &#x3D; &quot;containerd-shim&quot;</span><br><span class="line">    runtime &#x3D; &quot;runc&quot;</span><br><span class="line">    runtime_root &#x3D; &quot;&quot;</span><br><span class="line">    no_shim &#x3D; false</span><br><span class="line">    shim_debug &#x3D; false</span><br><span class="line">  [plugins.&quot;io.containerd.runtime.v2.task&quot;]</span><br><span class="line">    platforms &#x3D; [&quot;linux&#x2F;amd64&quot;]</span><br><span class="line">  [plugins.&quot;io.containerd.service.v1.diff-service&quot;]</span><br><span class="line">    default &#x3D; [&quot;walking&quot;]</span><br><span class="line">  [plugins.&quot;io.containerd.snapshotter.v1.devmapper&quot;]</span><br><span class="line">    root_path &#x3D; &quot;&quot;</span><br><span class="line">    pool_name &#x3D; &quot;&quot;</span><br><span class="line">    base_image_size &#x3D; &quot;&quot;</span><br><span class="line">    async_remove &#x3D; false</span><br></pre></td></tr></table></figure>
 
-<h3 id="Install-cri-tools"><a href="#Install-cri-tools" class="headerlink" title="Install cri-tools"></a>Install <code>cri-tools</code></h3><blockquote>
-<p><strong>Note:</strong> <code>cri-tools</code> is a set of tools for CRI used for development and testing. Users who only want<br>to use containerd with Kubernetes can skip the <code>cri-tools</code>.</p>
-</blockquote>
-<p>You can install the <code>cri-tools</code> from source code:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ go get github.com/kubernetes-incubator/cri-tools</span><br><span class="line">$ <span class="built_in">pushd</span> <span class="variable">$GOPATH</span>/src/github.com/kubernetes-incubator/cri-tools</span><br><span class="line">$ make</span><br><span class="line">$ sudo -E make install</span><br><span class="line">$ <span class="built_in">popd</span></span><br></pre></td></tr></table></figure>
+<p>对于配置文件的说明，详细见：<a href="https://github.com/containerd/cri/blob/master/docs/config.md(https://github.com/containerd/cri/blob/master/docs/config.md)">https://github.com/containerd/cri/blob/master/docs/config.md(https://github.com/containerd/cri/blob/master/docs/config.md)</a></p>
+<h1 id="重启containerd服务"><a href="#重启containerd服务" class="headerlink" title="重启containerd服务"></a>重启containerd服务</h1><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">root@ubuntu-001:~# systemctl restart containerd.service </span><br><span class="line">root@ubuntu-001:~# systemctl status containerd.service </span><br><span class="line">● containerd.service - containerd container runtime</span><br><span class="line">   Loaded: loaded (&#x2F;lib&#x2F;systemd&#x2F;system&#x2F;containerd.service; enabled; vendor preset: enabled)</span><br><span class="line">   Active: active (running) since Sun 2021-02-07 14:47:19 CST; 7s ago</span><br><span class="line">     Docs: https:&#x2F;&#x2F;containerd.io</span><br><span class="line">  Process: 49492 ExecStartPre&#x3D;&#x2F;sbin&#x2F;modprobe overlay (code&#x3D;exited, status&#x3D;0&#x2F;SUCCESS)</span><br><span class="line"> Main PID: 49495 (containerd)</span><br><span class="line">    Tasks: 12</span><br><span class="line">   CGroup: &#x2F;system.slice&#x2F;containerd.service</span><br><span class="line">           └─49495 &#x2F;usr&#x2F;bin&#x2F;containerd</span><br><span class="line"></span><br><span class="line">Feb 07 14:47:19 ubuntu-001 containerd[49495]: time&#x3D;&quot;2021-02-07T14:47:19.601885424+08:00&quot; level&#x3D;info msg&#x3D;serving... address&#x3D;&#x2F;run&#x2F;containerd&#x2F;containerd.sock.ttrpc</span><br><span class="line">Feb 07 14:47:19 ubuntu-001 containerd[49495]: time&#x3D;&quot;2021-02-07T14:47:19.602030656+08:00&quot; level&#x3D;info msg&#x3D;serving... address&#x3D;&#x2F;run&#x2F;containerd&#x2F;containerd.sock</span><br><span class="line">Feb 07 14:47:19 ubuntu-001 systemd[1]: Started containerd container runtime.</span><br><span class="line">Feb 07 14:47:19 ubuntu-001 containerd[49495]: time&#x3D;&quot;2021-02-07T14:47:19.603347612+08:00&quot; level&#x3D;info msg&#x3D;&quot;containerd successfully booted in 0.038926s&quot;</span><br><span class="line">Feb 07 14:47:19 ubuntu-001 containerd[49495]: time&#x3D;&quot;2021-02-07T14:47:19.620111786+08:00&quot; level&#x3D;info msg&#x3D;&quot;Start subscribing containerd event&quot;</span><br><span class="line">Feb 07 14:47:19 ubuntu-001 containerd[49495]: time&#x3D;&quot;2021-02-07T14:47:19.620341044+08:00&quot; level&#x3D;info msg&#x3D;&quot;Start recovering state&quot;</span><br><span class="line">Feb 07 14:47:19 ubuntu-001 containerd[49495]: time&#x3D;&quot;2021-02-07T14:47:19.647143755+08:00&quot; level&#x3D;info msg&#x3D;&quot;Start event monitor&quot;</span><br><span class="line">Feb 07 14:47:19 ubuntu-001 containerd[49495]: time&#x3D;&quot;2021-02-07T14:47:19.647352452+08:00&quot; level&#x3D;info msg&#x3D;&quot;Start snapshots syncer&quot;</span><br><span class="line">Feb 07 14:47:19 ubuntu-001 containerd[49495]: time&#x3D;&quot;2021-02-07T14:47:19.647463902+08:00&quot; level&#x3D;info msg&#x3D;&quot;Start cni network conf syncer&quot;</span><br><span class="line">Feb 07 14:47:19 ubuntu-001 containerd[49495]: time&#x3D;&quot;2021-02-07T14:47:19.647544196+08:00&quot; level&#x3D;info msg&#x3D;&quot;Start streaming server&quot;</span><br></pre></td></tr></table></figure>
 
-<h2 id="Configuration"><a href="#Configuration" class="headerlink" title="Configuration"></a>Configuration</h2><h3 id="Configure-containerd-to-use-Kata-Containers"><a href="#Configure-containerd-to-use-Kata-Containers" class="headerlink" title="Configure containerd to use Kata Containers"></a>Configure containerd to use Kata Containers</h3><p>By default, the configuration of containerd is located at <code>/etc/containerd/config.toml</code>, and the<br><code>cri</code> plugins are placed in the following section:</p>
-<figure class="highlight toml"><table><tr><td class="code"><pre><span class="line"><span class="section">[plugins]</span></span><br><span class="line">  <span class="section">[plugins.cri]</span></span><br><span class="line">    <span class="section">[plugins.cri.containerd]</span></span><br><span class="line">      <span class="section">[plugins.cri.containerd.default_runtime]</span></span><br><span class="line">        <span class="comment">#runtime_type = &quot;io.containerd.runtime.v1.linux&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="section">[plugins.cri.cni]</span></span><br><span class="line">      <span class="comment"># conf_dir is the directory in which the admin places a CNI conf.</span></span><br><span class="line">      <span class="attr">conf_dir</span> = <span class="string">&quot;/etc/cni/net.d&quot;</span></span><br></pre></td></tr></table></figure>
+<h1 id="配置cri的命令行（crictl）配置"><a href="#配置cri的命令行（crictl）配置" class="headerlink" title="配置cri的命令行（crictl）配置"></a>配置cri的命令行（crictl）配置</h1><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">root@ubuntu-001:~# cat &#x2F;etc&#x2F;crictl.yaml </span><br><span class="line">runtime-endpoint: unix:&#x2F;&#x2F;&#x2F;run&#x2F;containerd&#x2F;containerd.sock</span><br><span class="line">image-endpoint: unix:&#x2F;&#x2F;&#x2F;run&#x2F;containerd&#x2F;containerd.sock</span><br><span class="line">timeout: 10</span><br><span class="line">debug: false</span><br><span class="line"></span><br><span class="line">root@ubuntu-001:~# crictl version</span><br><span class="line">Version:  0.1.0</span><br><span class="line">RuntimeName:  containerd</span><br><span class="line">RuntimeVersion:  1.4.3</span><br><span class="line">RuntimeApiVersion:  v1alpha2</span><br></pre></td></tr></table></figure>
+<h1 id="使用containerd运行容器"><a href="#使用containerd运行容器" class="headerlink" title="使用containerd运行容器"></a>使用containerd运行容器</h1><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">pull镜像</span><br><span class="line">root@ubuntu-001:~# ctr image pull docker.io&#x2F;library&#x2F;busybox:latest</span><br><span class="line">docker.io&#x2F;library&#x2F;busybox:latest:                                                 resolved       |++++++++++++++++++++++++++++++++++++++| </span><br><span class="line">index-sha256:e1488cb900233d035575f0a7787448cb1fa93bed0ccc0d4efc1963d7d72a8f17:    done           |++++++++++++++++++++++++++++++++++++++| </span><br><span class="line">manifest-sha256:56853b711255f4a0bc7c44d2158167f03f64ef75a22a0249a9fae4703ec10f61: done           |++++++++++++++++++++++++++++++++++++++| </span><br><span class="line">layer-sha256:4c892f00285e3ea7b8a08a03d04df2bc021a11fe838aa23d8e4ed17081ea3c18:    done           |++++++++++++++++++++++++++++++++++++++| </span><br><span class="line">config-sha256:22667f53682a2920948d19c7133ab1c9c3f745805c14125859d20cede07f11f9:   done           |++++++++++++++++++++++++++++++++++++++| </span><br><span class="line">elapsed: 12.7s                                                                    total:  4.0 Ki (319.0 B&#x2F;s)                                       </span><br><span class="line">unpacking linux&#x2F;amd64 sha256:e1488cb900233d035575f0a7787448cb1fa93bed0ccc0d4efc1963d7d72a8f17...</span><br><span class="line">done</span><br><span class="line"></span><br><span class="line">查询镜像</span><br><span class="line">root@ubuntu-001:~# ctr images ls</span><br><span class="line">REF                              TYPE                                                      DIGEST                                                                  SIZE      PLATFORMS                                                                                                            LABELS </span><br><span class="line">docker.io&#x2F;library&#x2F;busybox:latest application&#x2F;vnd.docker.distribution.manifest.list.v2+json sha256:e1488cb900233d035575f0a7787448cb1fa93bed0ccc0d4efc1963d7d72a8f17 750.7 KiB linux&#x2F;386,linux&#x2F;amd64,linux&#x2F;arm&#x2F;v5,linux&#x2F;arm&#x2F;v6,linux&#x2F;arm&#x2F;v7,linux&#x2F;arm64&#x2F;v8,linux&#x2F;mips64le,linux&#x2F;ppc64le,linux&#x2F;s390x -</span><br><span class="line"></span><br><span class="line">运行容器</span><br><span class="line"></span><br><span class="line">root@ubuntu-001:~# ctr run --runtime io.containerd.run.kata.v2 -t -d --rm docker.io&#x2F;library&#x2F;busybox:latest hello-kata</span><br><span class="line">root@ubuntu-001:~# ctr run -t -d --rm docker.io&#x2F;library&#x2F;busybox:latest hello-runc</span><br><span class="line">&#x2F; # root@ubuntu-001:~# </span><br><span class="line">root@ubuntu-001:~# ps -ef|grep containerd</span><br><span class="line">root      42028   1725  0 14:13 ?        00:00:01 containerd</span><br><span class="line">root      49495      1  0 14:47 ?        00:00:04 &#x2F;usr&#x2F;bin&#x2F;containerd</span><br><span class="line">root      49524      1  0 14:47 ?        00:00:00 &#x2F;usr&#x2F;bin&#x2F;dockerd -H fd:&#x2F;&#x2F; --containerd&#x3D;&#x2F;run&#x2F;containerd&#x2F;containerd.sock</span><br><span class="line">root      63129      1  0 15:43 ?        00:00:00 &#x2F;usr&#x2F;bin&#x2F;containerd-shim-kata-v2 -namespace default -address &#x2F;run&#x2F;containerd&#x2F;containerd.sock -publish-binary &#x2F;usr&#x2F;bin&#x2F;containerd -id hello-kata</span><br><span class="line">root      63219      1  0 15:43 ?        00:00:00 &#x2F;usr&#x2F;bin&#x2F;containerd-shim-runc-v2 -namespace default -id hello-runc -address &#x2F;run&#x2F;containerd&#x2F;containerd.sock</span><br><span class="line">root      63382  58536  0 15:43 pts&#x2F;2    00:00:00 grep --color&#x3D;auto containerd</span><br><span class="line"></span><br><span class="line">root@ubuntu-001:~# ctr tasks list</span><br><span class="line">TASK          PID      STATUS    </span><br><span class="line">hello-kata    63129    RUNNING</span><br><span class="line">hello-runc    63241    RUNNING</span><br><span class="line"></span><br><span class="line">root@ubuntu-001:~# ctr tasks exec -t --exec-id 63129 hello-kata sh</span><br><span class="line">&#x2F; # uname -a</span><br><span class="line">Linux clr-84d1dc4d9ae34cad92be6e6629a4f67a 5.4.60-52.container #1 SMP Sat Jan 16 05:49:34 UTC 2021 x86_64 GNU&#x2F;Linux</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">root@ubuntu-001:~# ctr tasks exec -t --exec-id 63241 hello-runc sh</span><br><span class="line">&#x2F; # uname -a</span><br><span class="line">Linux ubuntu-001 5.4.0-65-generic #73~18.04.1-Ubuntu SMP Tue Jan 19 09:02:24 UTC 2021 x86_64 GNU&#x2F;Linux</span><br><span class="line"></span><br><span class="line">root@ubuntu-001:~# uname -a</span><br><span class="line">Linux ubuntu-001 5.4.0-65-generic #73~18.04.1-Ubuntu SMP Tue Jan 19 09:02:24 UTC 2021 x86_64 x86_64 x86_64 GNU&#x2F;Linux</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">停止容器</span><br><span class="line">root@ubuntu-001:~# ctr tasks list</span><br><span class="line">TASK          PID      STATUS    </span><br><span class="line">hello-kata    63129    RUNNING</span><br><span class="line">hello-runc    63241    RUNNING </span><br><span class="line">root@ubuntu-001:~# </span><br><span class="line">root@ubuntu-001:~# ctr tasks kill --signal 9 hello-kata</span><br><span class="line">root@ubuntu-001:~# ctr tasks kill --signal 9 hello-runc</span><br><span class="line">root@ubuntu-001:~# ctr tasks list</span><br><span class="line">TASK          PID      STATUS    </span><br><span class="line">hello-kata    63129    STOPPED</span><br><span class="line">hello-runc    63241    STOPPED</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">删除容器</span><br><span class="line">root@ubuntu-001:~# ctr container list</span><br><span class="line">CONTAINER     IMAGE                               RUNTIME                      </span><br><span class="line">hello-kata    docker.io&#x2F;library&#x2F;busybox:latest    io.containerd.run.kata.v2    </span><br><span class="line">hello-runc    docker.io&#x2F;library&#x2F;busybox:latest    io.containerd.runc.v2        </span><br><span class="line">root@ubuntu-001:~# ctr container rm hello-kata</span><br><span class="line">root@ubuntu-001:~# ctr container rm hello-runc</span><br><span class="line">root@ubuntu-001:~# ctr container list</span><br><span class="line">CONTAINER    IMAGE    RUNTIME    </span><br></pre></td></tr></table></figure>
 
-<p>The following sections outline how to add Kata Containers to the configurations.</p>
-<h4 id="Kata-Containers-as-a-RuntimeClass"><a href="#Kata-Containers-as-a-RuntimeClass" class="headerlink" title="Kata Containers as a RuntimeClass"></a>Kata Containers as a <code>RuntimeClass</code></h4><p>For </p>
-<ul>
-<li>Kata Containers v1.5.0 or above (including <code>1.5.0-rc</code>)</li>
-<li>Containerd v1.2.0 or above</li>
-<li>Kubernetes v1.12.0 or above</li>
-</ul>
-<p>The <code>RuntimeClass</code> is suggested.</p>
-<p>The following configuration includes three runtime classes:</p>
-<ul>
-<li><code>plugins.cri.containerd.runtimes.runc</code>: the runc, and it is the default runtime.</li>
-<li><code>plugins.cri.containerd.runtimes.kata</code>: The function in containerd (reference <a href="https://github.com/containerd/containerd/tree/master/runtime/v2#binary-naming">the document here</a>)<br>where the dot-connected string <code>io.containerd.kata.v2</code> is translated to <code>containerd-shim-kata-v2</code> (i.e. the<br>binary name of the Kata implementation of <a href="https://github.com/containerd/containerd/tree/master/runtime/v2">Containerd Runtime V2 (Shim API)</a>).</li>
-<li><code>plugins.cri.containerd.runtimes.katacli</code>: the <code>containerd-shim-runc-v1</code> calls <code>kata-runtime</code>, which is the legacy process.</li>
-</ul>
-<figure class="highlight toml"><table><tr><td class="code"><pre><span class="line"><span class="section">[plugins.cri.containerd]</span></span><br><span class="line">  <span class="attr">no_pivot</span> = <span class="literal">false</span></span><br><span class="line"><span class="section">[plugins.cri.containerd.runtimes]</span></span><br><span class="line">  <span class="section">[plugins.cri.containerd.runtimes.runc]</span></span><br><span class="line">     <span class="attr">runtime_type</span> = <span class="string">&quot;io.containerd.runc.v1&quot;</span></span><br><span class="line">     <span class="section">[plugins.cri.containerd.runtimes.runc.options]</span></span><br><span class="line">       <span class="attr">NoPivotRoot</span> = <span class="literal">false</span></span><br><span class="line">       <span class="attr">NoNewKeyring</span> = <span class="literal">false</span></span><br><span class="line">       <span class="attr">ShimCgroup</span> = <span class="string">&quot;&quot;</span></span><br><span class="line">       <span class="attr">IoUid</span> = <span class="number">0</span></span><br><span class="line">       <span class="attr">IoGid</span> = <span class="number">0</span></span><br><span class="line">       <span class="attr">BinaryName</span> = <span class="string">&quot;runc&quot;</span></span><br><span class="line">       <span class="attr">Root</span> = <span class="string">&quot;&quot;</span></span><br><span class="line">       <span class="attr">CriuPath</span> = <span class="string">&quot;&quot;</span></span><br><span class="line">       <span class="attr">SystemdCgroup</span> = <span class="literal">false</span></span><br><span class="line">  <span class="section">[plugins.cri.containerd.runtimes.kata]</span></span><br><span class="line">     <span class="attr">runtime_type</span> = <span class="string">&quot;io.containerd.kata.v2&quot;</span></span><br><span class="line">  <span class="section">[plugins.cri.containerd.runtimes.katacli]</span></span><br><span class="line">     <span class="attr">runtime_type</span> = <span class="string">&quot;io.containerd.runc.v1&quot;</span></span><br><span class="line">     <span class="section">[plugins.cri.containerd.runtimes.katacli.options]</span></span><br><span class="line">       <span class="attr">NoPivotRoot</span> = <span class="literal">false</span></span><br><span class="line">       <span class="attr">NoNewKeyring</span> = <span class="literal">false</span></span><br><span class="line">       <span class="attr">ShimCgroup</span> = <span class="string">&quot;&quot;</span></span><br><span class="line">       <span class="attr">IoUid</span> = <span class="number">0</span></span><br><span class="line">       <span class="attr">IoGid</span> = <span class="number">0</span></span><br><span class="line">       <span class="attr">BinaryName</span> = <span class="string">&quot;/usr/bin/kata-runtime&quot;</span></span><br><span class="line">       <span class="attr">Root</span> = <span class="string">&quot;&quot;</span></span><br><span class="line">       <span class="attr">CriuPath</span> = <span class="string">&quot;&quot;</span></span><br><span class="line">       <span class="attr">SystemdCgroup</span> = <span class="literal">false</span></span><br></pre></td></tr></table></figure>
-
-<p>From Containerd v1.2.4 and Kata v1.6.0, there is a new runtime option supported, which allows you to specify a specific Kata configuration file as follows:</p>
-<figure class="highlight toml"><table><tr><td class="code"><pre><span class="line">    <span class="section">[plugins.cri.containerd.runtimes.kata]</span></span><br><span class="line">       <span class="attr">runtime_type</span> = <span class="string">&quot;io.containerd.kata.v2&quot;</span></span><br><span class="line"><span class="section">[plugins.cri.containerd.runtimes.kata.options]</span></span><br><span class="line">  <span class="attr">ConfigPath</span> = <span class="string">&quot;/etc/kata-containers/config.toml&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>This <code>ConfigPath</code> option is optional. If you do not specify it, shimv2 first tries to get the configuration file from the environment variable <code>KATA_CONF_FILE</code>. If neither are set, shimv2 will use the default Kata configuration file paths (<code>/etc/kata-containers/configuration.toml</code> and <code>/usr/share/defaults/kata-containers/configuration.toml</code>).</p>
-<p>If you use Containerd older than v1.2.4 or a version of Kata older than v1.6.0  and also want to specify a configuration file, you can use the following workaround, since the shimv2 accepts an environment variable, <code>KATA_CONF_FILE</code> for the configuration file path. Then, you can create a<br>shell script with the following:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line">KATA_CONF_FILE=/etc/kata-containers/firecracker.toml containerd-shim-kata-v2 <span class="variable">$@</span></span><br></pre></td></tr></table></figure>
-
-<p>Name it as <code>/usr/local/bin/containerd-shim-katafc-v2</code> and reference it in the configuration of containerd:</p>
-<figure class="highlight toml"><table><tr><td class="code"><pre><span class="line"><span class="section">[plugins.cri.containerd.runtimes.kata-firecracker]</span></span><br><span class="line">   <span class="attr">runtime_type</span> = <span class="string">&quot;io.containerd.katafc.v2&quot;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Kata-Containers-as-the-runtime-for-untrusted-workload"><a href="#Kata-Containers-as-the-runtime-for-untrusted-workload" class="headerlink" title="Kata Containers as the runtime for untrusted workload"></a>Kata Containers as the runtime for untrusted workload</h4><p>For cases without <code>RuntimeClass</code> support, we can use the legacy annotation method to support using Kata Containers<br>for an untrusted workload. With the following configuration, you can run trusted workloads with a runtime such as <code>runc</code><br>and then, run an untrusted workload with Kata Containers: </p>
-<figure class="highlight toml"><table><tr><td class="code"><pre><span class="line"><span class="section">[plugins.cri.containerd]</span></span><br><span class="line"><span class="comment"># &quot;plugins.cri.containerd.default_runtime&quot; is the runtime to use in containerd.</span></span><br><span class="line"><span class="section">[plugins.cri.containerd.default_runtime]</span></span><br><span class="line">  <span class="comment"># runtime_type is the runtime type to use in containerd e.g. io.containerd.runtime.v1.linux</span></span><br><span class="line">  <span class="attr">runtime_type</span> = <span class="string">&quot;io.containerd.runtime.v1.linux&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># &quot;plugins.cri.containerd.untrusted_workload_runtime&quot; is a runtime to run untrusted workloads on it.</span></span><br><span class="line"><span class="section">[plugins.cri.containerd.untrusted_workload_runtime]</span></span><br><span class="line">  <span class="comment"># runtime_type is the runtime type to use in containerd e.g. io.containerd.runtime.v1.linux</span></span><br><span class="line">  <span class="attr">runtime_type</span> = <span class="string">&quot;io.containerd.kata.v2&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>For the earlier versions of Kata Containers and containerd that do not support Runtime V2 (Shim API), you can use the following alternative configuration:</p>
-<figure class="highlight toml"><table><tr><td class="code"><pre><span class="line"><span class="section">[plugins.cri.containerd]</span></span><br><span class="line">  </span><br><span class="line"><span class="comment"># &quot;plugins.cri.containerd.default_runtime&quot; is the runtime to use in containerd.</span></span><br><span class="line"><span class="section">[plugins.cri.containerd.default_runtime]</span></span><br><span class="line">  <span class="comment"># runtime_type is the runtime type to use in containerd e.g. io.containerd.runtime.v1.linux</span></span><br><span class="line">  <span class="attr">runtime_type</span> = <span class="string">&quot;io.containerd.runtime.v1.linux&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># &quot;plugins.cri.containerd.untrusted_workload_runtime&quot; is a runtime to run untrusted workloads on it.</span></span><br><span class="line"><span class="section">[plugins.cri.containerd.untrusted_workload_runtime]</span></span><br><span class="line">  <span class="comment"># runtime_type is the runtime type to use in containerd e.g. io.containerd.runtime.v1.linux</span></span><br><span class="line">  <span class="attr">runtime_type</span> = <span class="string">&quot;io.containerd.runtime.v1.linux&quot;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># runtime_engine is the name of the runtime engine used by containerd.</span></span><br><span class="line">  <span class="attr">runtime_engine</span> = <span class="string">&quot;/usr/bin/kata-runtime&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>You can find more information on the <a href="https://github.com/containerd/cri/blob/master/docs/config.md">Containerd config documentation</a></p>
-<h4 id="Kata-Containers-as-the-default-runtime"><a href="#Kata-Containers-as-the-default-runtime" class="headerlink" title="Kata Containers as the default runtime"></a>Kata Containers as the default runtime</h4><p>If you want to set Kata Containers as the only runtime in the deployment, you can simply configure as follows:</p>
-<figure class="highlight toml"><table><tr><td class="code"><pre><span class="line"><span class="section">[plugins.cri.containerd]</span></span><br><span class="line"><span class="section">[plugins.cri.containerd.default_runtime]</span></span><br><span class="line">  <span class="attr">runtime_type</span> = <span class="string">&quot;io.containerd.kata.v2&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>Alternatively, for the earlier versions of Kata Containers and containerd that do not support Runtime V2 (Shim API), you can use the following alternative configuration:</p>
-<figure class="highlight toml"><table><tr><td class="code"><pre><span class="line"><span class="section">[plugins.cri.containerd]</span></span><br><span class="line"><span class="section">[plugins.cri.containerd.default_runtime]</span></span><br><span class="line">  <span class="attr">runtime_type</span> = <span class="string">&quot;io.containerd.runtime.v1.linux&quot;</span></span><br><span class="line">  <span class="attr">runtime_engine</span> = <span class="string">&quot;/usr/bin/kata-runtime&quot;</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Configuration-for-cri-tools"><a href="#Configuration-for-cri-tools" class="headerlink" title="Configuration for cri-tools"></a>Configuration for <code>cri-tools</code></h3><blockquote>
-<p><strong>Note:</strong> If you skipped the <a href="#install-cri-tools">Install <code>cri-tools</code></a> section, you can skip this section too.</p>
-</blockquote>
-<p>First, add the CNI configuration in the containerd configuration. </p>
-<p>The following is the configuration if you installed CNI as the <em><a href="#install-cni-plugins">Install CNI plugins</a></em> section outlined. </p>
-<p>Put the CNI configuration as <code>/etc/cni/net.d/10-mynet.conf</code>:</p>
-<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="attr">&quot;cniVersion&quot;</span>: <span class="string">&quot;0.2.0&quot;</span>,</span><br><span class="line">	<span class="attr">&quot;name&quot;</span>: <span class="string">&quot;mynet&quot;</span>,</span><br><span class="line">	<span class="attr">&quot;type&quot;</span>: <span class="string">&quot;bridge&quot;</span>,</span><br><span class="line">	<span class="attr">&quot;bridge&quot;</span>: <span class="string">&quot;cni0&quot;</span>,</span><br><span class="line">	<span class="attr">&quot;isGateway&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">	<span class="attr">&quot;ipMasq&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">	<span class="attr">&quot;ipam&quot;</span>: &#123;</span><br><span class="line">		<span class="attr">&quot;type&quot;</span>: <span class="string">&quot;host-local&quot;</span>,</span><br><span class="line">		<span class="attr">&quot;subnet&quot;</span>: <span class="string">&quot;172.19.0.0/24&quot;</span>,</span><br><span class="line">		<span class="attr">&quot;routes&quot;</span>: [</span><br><span class="line">			&#123; <span class="attr">&quot;dst&quot;</span>: <span class="string">&quot;0.0.0.0/0&quot;</span> &#125;</span><br><span class="line">		]</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Next, reference the configuration directory through containerd <code>config.toml</code>:</p>
-<figure class="highlight toml"><table><tr><td class="code"><pre><span class="line"><span class="section">[plugins.cri.cni]</span></span><br><span class="line">    <span class="comment"># conf_dir is the directory in which the admin places a CNI conf.</span></span><br><span class="line">    <span class="attr">conf_dir</span> = <span class="string">&quot;/etc/cni/net.d&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>The configuration file of <code>crictl</code> command line tool in <code>cri-tools</code> locates at <code>/etc/crictl.yaml</code>:</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">runtime-endpoint:</span> <span class="string">unix:///var/run/containerd/containerd.sock</span></span><br><span class="line"><span class="attr">image-endpoint:</span> <span class="string">unix:///var/run/containerd/containerd.sock</span></span><br><span class="line"><span class="attr">timeout:</span> <span class="number">10</span></span><br><span class="line"><span class="attr">debug:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="Run"><a href="#Run" class="headerlink" title="Run"></a>Run</h2><h3 id="Launch-containers-with-ctr-command-line"><a href="#Launch-containers-with-ctr-command-line" class="headerlink" title="Launch containers with ctr command line"></a>Launch containers with <code>ctr</code> command line</h3><p>To run a container with Kata Containers through the containerd command line, you can run the following:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo ctr image pull docker.io/library/busybox:latest</span><br><span class="line">$ sudo ctr run --runtime io.containerd.run.kata.v2 -t --rm docker.io/library/busybox:latest hello sh</span><br></pre></td></tr></table></figure>
-
-<p>This launches a BusyBox container named <code>hello</code>, and it will be removed by <code>--rm</code> after it quits.</p>
-<h3 id="Launch-Pods-with-crictl-command-line"><a href="#Launch-Pods-with-crictl-command-line" class="headerlink" title="Launch Pods with crictl command line"></a>Launch Pods with <code>crictl</code> command line</h3><p>With the <code>crictl</code> command line of <code>cri-tools</code>, you can specify runtime class with <code>-r</code> or <code>--runtime</code> flag.<br> Use the following to launch Pod with <code>kata</code> runtime class with the pod in <a href="https://github.com/kubernetes-sigs/cri-tools/tree/master/docs/examples">the example</a><br>of <code>cri-tools</code>:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo crictl runp -r kata podsandbox-config.yaml</span><br><span class="line">36e23521e8f89fabd9044924c9aeb34890c60e85e1748e8daca7e2e673f8653e</span><br></pre></td></tr></table></figure>
-
-<p>You can add container to the launched Pod with the following:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo crictl create 36e23521e8f89 container-config.yaml podsandbox-config.yaml</span><br><span class="line">1aab7585530e62c446734f12f6899f095ce53422dafcf5a80055ba11b95f2da7</span><br></pre></td></tr></table></figure>
-
-<p>Now, start it with the following:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo crictl start 1aab7585530e6</span><br><span class="line">1aab7585530e6</span><br></pre></td></tr></table></figure>
-
-<p>In Kubernetes, you need to create a <code>RuntimeClass</code> resource and add the <code>RuntimeClass</code> field in the Pod Spec<br>(see this <a href="https://kubernetes.io/docs/concepts/containers/runtime-class/">document</a> for more information).</p>
-<p>If <code>RuntimeClass</code> is not supported, you can use the following annotation in a Kubernetes pod to identify as an untrusted workload:</p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">annotations:</span></span><br><span class="line">   <span class="attr">io.kubernetes.cri.untrusted-workload:</span> <span class="string">&quot;true&quot;</span></span><br></pre></td></tr></table></figure>]]></content>
+]]></content>
       <categories>
         <category>kata-containers</category>
         <category>containerd</category>
@@ -207,6 +91,46 @@
       <tags>
         <tag>kata-containers</tag>
         <tag>containerd</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>go中的defer关键字</title>
+    <url>/2021/01/27/go%E4%B8%AD%E7%9A%84defer%E5%85%B3%E9%94%AE%E5%AD%97/</url>
+    <content><![CDATA[<p>摘自：<a href="https://tiancaiamao.gitbooks.io/go-internals/content/zh/03.4.html">https://tiancaiamao.gitbooks.io/go-internals/content/zh/03.4.html</a></p>
+<p>defer和go一样都是Go语言提供的关键字。defer用于资源的释放，会在函数返回之前进行调用。一般采用如下模式：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">f,err :&#x3D; os.Open(filename)</span><br><span class="line">if err !&#x3D; nil &#123;</span><br><span class="line">    panic(err)</span><br><span class="line">&#125;</span><br><span class="line">defer f.Close()</span><br></pre></td></tr></table></figure>
+
+<p>如果有多个defer表达式，调用顺序类似于栈，越后面的defer表达式越先被调用。</p>
+<p>不过如果对defer的了解不够深入，使用起来可能会踩到一些坑，尤其是跟带命名的返回参数一起使用时。在讲解defer的实现之前先看一看使用defer容易遇到的问题。</p>
+<h1 id="defer使用时的坑"><a href="#defer使用时的坑" class="headerlink" title="defer使用时的坑"></a>defer使用时的坑</h1><p>先来看看几个例子。<br>例1：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">func f() (result int) &#123;</span><br><span class="line">    defer func() &#123;</span><br><span class="line">        result++</span><br><span class="line">    &#125;()</span><br><span class="line">    return 0</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>例2：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">func f() (r int) &#123;</span><br><span class="line">     t :&#x3D; 5</span><br><span class="line">     defer func() &#123;</span><br><span class="line">       t &#x3D; t + 5</span><br><span class="line">     &#125;()</span><br><span class="line">     return t</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>例3：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">func f() (r int) &#123;</span><br><span class="line">    defer func(r int) &#123;</span><br><span class="line">          r &#x3D; r + 5</span><br><span class="line">    &#125;(r)</span><br><span class="line">    return 1</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>请读者先不要运行代码，在心里跑一遍结果，然后去验证。</p>
+<p><strong>例1的正确答案不是0，例2的正确答案不是10，如果例3的正确答案不是6……</strong></p>
+<p>defer是在return之前执行的。这个在 官方文档中是明确说明了的。要使用defer时不踩坑，最重要的一点就是要明白，<strong>return xxx这一条语句并不是一条原子指令!</strong></p>
+<p>函数返回的过程是这样的：<strong>先给返回值赋值，然后调用defer表达式，最后才是返回到调用函数中</strong>。</p>
+<p>defer表达式可能会在设置函数返回值之后，在返回到调用函数之前，修改返回值，使最终的函数返回值与你想象的不一致。</p>
+<p>其实使用defer时，用一个简单的转换规则改写一下，就不会迷糊了。改写规则是将return语句拆成两句写，return xxx会被改写成:</p>
+<p><strong>返回值 = xxx</strong><br><strong>调用defer函数</strong><br><strong>空的return</strong></p>
+<p>先看例1，它可以改写成这样：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">func f() (result int) &#123;</span><br><span class="line">     result &#x3D; 0  &#x2F;&#x2F;return语句不是一条原子调用，return xxx其实是赋值＋ret指令</span><br><span class="line">     func() &#123; &#x2F;&#x2F;defer被插入到return之前执行，也就是赋返回值和ret指令之间</span><br><span class="line">         result++</span><br><span class="line">     &#125;()</span><br><span class="line">     return</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>所以这个返回值是1。</p>
+<p>再看例2，它可以改写成这样：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">func f() (r int) &#123;</span><br><span class="line">     t :&#x3D; 5</span><br><span class="line">     r &#x3D; t &#x2F;&#x2F;赋值指令</span><br><span class="line">     func() &#123;        &#x2F;&#x2F;defer被插入到赋值与返回之间执行，这个例子中返回值r没被修改过</span><br><span class="line">         t &#x3D; t + 5</span><br><span class="line">     &#125;</span><br><span class="line">     return        &#x2F;&#x2F;空的return指令</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>所以这个的结果是5。</p>
+<p>最后看例3，它改写后变成：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">func f() (r int) &#123;</span><br><span class="line">     r &#x3D; 1  &#x2F;&#x2F;给返回值赋值</span><br><span class="line">     func(r int) &#123;        &#x2F;&#x2F;这里改的r是传值传进去的r，不会改变要返回的那个r值</span><br><span class="line">          r &#x3D; r + 5</span><br><span class="line">     &#125;(r)</span><br><span class="line">     return        &#x2F;&#x2F;空的return</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>所以这个例子的结果是1。</p>
+<p><strong>总结：defer确实是在return之前调用的。但表现形式上却可能不像。本质原因是return xxx语句并不是一条原子指令，defer被插入到了赋值 与 ret之间，因此可能有机会改变最终的返回值。</strong></p>
+]]></content>
+      <categories>
+        <category>go</category>
+      </categories>
+      <tags>
+        <tag>go</tag>
       </tags>
   </entry>
   <entry>
@@ -250,46 +174,6 @@
       <tags>
         <tag>kata-containers</tag>
         <tag>docker</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>go中的defer关键字</title>
-    <url>/2021/01/27/go%E4%B8%AD%E7%9A%84defer%E5%85%B3%E9%94%AE%E5%AD%97/</url>
-    <content><![CDATA[<p>摘自：<a href="https://tiancaiamao.gitbooks.io/go-internals/content/zh/03.4.html">https://tiancaiamao.gitbooks.io/go-internals/content/zh/03.4.html</a></p>
-<p>defer和go一样都是Go语言提供的关键字。defer用于资源的释放，会在函数返回之前进行调用。一般采用如下模式：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">f,err :&#x3D; os.Open(filename)</span><br><span class="line">if err !&#x3D; nil &#123;</span><br><span class="line">    panic(err)</span><br><span class="line">&#125;</span><br><span class="line">defer f.Close()</span><br></pre></td></tr></table></figure>
-
-<p>如果有多个defer表达式，调用顺序类似于栈，越后面的defer表达式越先被调用。</p>
-<p>不过如果对defer的了解不够深入，使用起来可能会踩到一些坑，尤其是跟带命名的返回参数一起使用时。在讲解defer的实现之前先看一看使用defer容易遇到的问题。</p>
-<h1 id="defer使用时的坑"><a href="#defer使用时的坑" class="headerlink" title="defer使用时的坑"></a>defer使用时的坑</h1><p>先来看看几个例子。<br>例1：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">func f() (result int) &#123;</span><br><span class="line">    defer func() &#123;</span><br><span class="line">        result++</span><br><span class="line">    &#125;()</span><br><span class="line">    return 0</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>例2：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">func f() (r int) &#123;</span><br><span class="line">     t :&#x3D; 5</span><br><span class="line">     defer func() &#123;</span><br><span class="line">       t &#x3D; t + 5</span><br><span class="line">     &#125;()</span><br><span class="line">     return t</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>例3：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">func f() (r int) &#123;</span><br><span class="line">    defer func(r int) &#123;</span><br><span class="line">          r &#x3D; r + 5</span><br><span class="line">    &#125;(r)</span><br><span class="line">    return 1</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>请读者先不要运行代码，在心里跑一遍结果，然后去验证。</p>
-<p><strong>例1的正确答案不是0，例2的正确答案不是10，如果例3的正确答案不是6……</strong></p>
-<p>defer是在return之前执行的。这个在 官方文档中是明确说明了的。要使用defer时不踩坑，最重要的一点就是要明白，<strong>return xxx这一条语句并不是一条原子指令!</strong></p>
-<p>函数返回的过程是这样的：<strong>先给返回值赋值，然后调用defer表达式，最后才是返回到调用函数中</strong>。</p>
-<p>defer表达式可能会在设置函数返回值之后，在返回到调用函数之前，修改返回值，使最终的函数返回值与你想象的不一致。</p>
-<p>其实使用defer时，用一个简单的转换规则改写一下，就不会迷糊了。改写规则是将return语句拆成两句写，return xxx会被改写成:</p>
-<p><strong>返回值 = xxx</strong><br><strong>调用defer函数</strong><br><strong>空的return</strong></p>
-<p>先看例1，它可以改写成这样：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">func f() (result int) &#123;</span><br><span class="line">     result &#x3D; 0  &#x2F;&#x2F;return语句不是一条原子调用，return xxx其实是赋值＋ret指令</span><br><span class="line">     func() &#123; &#x2F;&#x2F;defer被插入到return之前执行，也就是赋返回值和ret指令之间</span><br><span class="line">         result++</span><br><span class="line">     &#125;()</span><br><span class="line">     return</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>所以这个返回值是1。</p>
-<p>再看例2，它可以改写成这样：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">func f() (r int) &#123;</span><br><span class="line">     t :&#x3D; 5</span><br><span class="line">     r &#x3D; t &#x2F;&#x2F;赋值指令</span><br><span class="line">     func() &#123;        &#x2F;&#x2F;defer被插入到赋值与返回之间执行，这个例子中返回值r没被修改过</span><br><span class="line">         t &#x3D; t + 5</span><br><span class="line">     &#125;</span><br><span class="line">     return        &#x2F;&#x2F;空的return指令</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>所以这个的结果是5。</p>
-<p>最后看例3，它改写后变成：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">func f() (r int) &#123;</span><br><span class="line">     r &#x3D; 1  &#x2F;&#x2F;给返回值赋值</span><br><span class="line">     func(r int) &#123;        &#x2F;&#x2F;这里改的r是传值传进去的r，不会改变要返回的那个r值</span><br><span class="line">          r &#x3D; r + 5</span><br><span class="line">     &#125;(r)</span><br><span class="line">     return        &#x2F;&#x2F;空的return</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>所以这个例子的结果是1。</p>
-<p><strong>总结：defer确实是在return之前调用的。但表现形式上却可能不像。本质原因是return xxx语句并不是一条原子指令，defer被插入到了赋值 与 ret之间，因此可能有机会改变最终的返回值。</strong></p>
-]]></content>
-      <categories>
-        <category>go</category>
-      </categories>
-      <tags>
-        <tag>go</tag>
       </tags>
   </entry>
   <entry>
@@ -362,6 +246,35 @@
       </tags>
   </entry>
   <entry>
+    <title>有用的链接</title>
+    <url>/2020/12/24/%E6%9C%89%E7%94%A8%E7%9A%84%E9%93%BE%E6%8E%A5/</url>
+    <content><![CDATA[<table>
+<thead>
+<tr>
+<th>技术</th>
+<th align="right">链接</th>
+<th align="center">简介</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SimpleCV</td>
+<td align="right"><a href="http://simplecv.org/">http://simplecv.org/</a></td>
+<td align="center">开源的机器视觉库（对OpenCV python库的封装，对python3不支持）</td>
+</tr>
+<tr>
+<td>xxx</td>
+<td align="right">$1</td>
+<td align="center">6</td>
+</tr>
+<tr>
+<td>草莓</td>
+<td align="right">$1</td>
+<td align="center">7</td>
+</tr>
+</tbody></table>
+]]></content>
+  </entry>
+  <entry>
     <title>如何配置kubernetes的pod从私有仓库拉取镜像</title>
     <url>/2020/12/01/%E5%A6%82%E4%BD%95%E9%85%8D%E7%BD%AEkubernetes%E7%9A%84pod%E4%BB%8E%E7%A7%81%E6%9C%89%E4%BB%93%E5%BA%93%E6%8B%89%E5%8F%96%E9%95%9C%E5%83%8F/</url>
     <content><![CDATA[<p>在实际使用中，用户往往搭建了自己的私有镜像仓库。kubernetes用户创建pod的过程中，如何从私有镜像仓库拉取容器镜像？</p>
@@ -405,35 +318,6 @@
         <tag>docker</tag>
         <tag>kubernetes</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>有用的链接</title>
-    <url>/2020/12/24/%E6%9C%89%E7%94%A8%E7%9A%84%E9%93%BE%E6%8E%A5/</url>
-    <content><![CDATA[<table>
-<thead>
-<tr>
-<th>技术</th>
-<th align="right">链接</th>
-<th align="center">简介</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>SimpleCV</td>
-<td align="right"><a href="http://simplecv.org/">http://simplecv.org/</a></td>
-<td align="center">开源的机器视觉库（对OpenCV python库的封装，对python3不支持）</td>
-</tr>
-<tr>
-<td>xxx</td>
-<td align="right">$1</td>
-<td align="center">6</td>
-</tr>
-<tr>
-<td>草莓</td>
-<td align="right">$1</td>
-<td align="center">7</td>
-</tr>
-</tbody></table>
-]]></content>
   </entry>
   <entry>
     <title>kind快速部署Kubernetes环境</title>
