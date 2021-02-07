@@ -62,33 +62,6 @@
       </tags>
   </entry>
   <entry>
-    <title>docker with kata-container</title>
-    <url>/2021/02/07/docker-with-kata-container/</url>
-    <content><![CDATA[<h1 id="前提条件"><a href="#前提条件" class="headerlink" title="前提条件"></a>前提条件</h1><p>  已安装docker</p>
-<h1 id="安装Kata-Containers"><a href="#安装Kata-Containers" class="headerlink" title="安装Kata Containers"></a>安装Kata Containers</h1>   <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ARCH=$(arch)</span><br><span class="line">$ BRANCH=<span class="string">&quot;<span class="variable">$&#123;BRANCH:-master&#125;</span>&quot;</span></span><br><span class="line">$ sudo sh -c <span class="string">&quot;echo &#x27;deb http://download.opensuse.org/repositories/home:/katacontainers:/releases:/<span class="variable">$&#123;ARCH&#125;</span>:/<span class="variable">$&#123;BRANCH&#125;</span>/xUbuntu_<span class="subst">$(lsb_release -rs)</span>/ /&#x27; &gt; /etc/apt/sources.list.d/kata-containers.list&quot;</span></span><br><span class="line">$ curl -sL  http://download.opensuse.org/repositories/home:/katacontainers:/releases:/<span class="variable">$&#123;ARCH&#125;</span>:/<span class="variable">$&#123;BRANCH&#125;</span>/xUbuntu_$(lsb_release -rs)/Release.key | sudo apt-key add -</span><br><span class="line">$ sudo -E apt-get update</span><br><span class="line">$ sudo -E apt-get -y install kata-runtime kata-proxy kata-shim</span><br></pre></td></tr></table></figure>
-<h1 id="配置docker使用Kata-containers-两种方式二选一"><a href="#配置docker使用Kata-containers-两种方式二选一" class="headerlink" title="配置docker使用Kata containers(两种方式二选一)"></a>配置docker使用Kata containers(两种方式二选一)</h1><pre><code>1. systemd (this is the default and is applied automatically if you select the
-    [automatic installation](https://github.com/kata-containers/documentation/tree/master/install#automatic-installation) option)
-
-    <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo mkdir -p /etc/systemd/system/docker.service.d/</span><br><span class="line">$ cat &lt;&lt;<span class="string">EOF | sudo tee /etc/systemd/system/docker.service.d/kata-containers.conf</span></span><br><span class="line"><span class="string">[Service]</span></span><br><span class="line"><span class="string">ExecStart=</span></span><br><span class="line"><span class="string">ExecStart=/usr/bin/dockerd -D --add-runtime kata-runtime=/usr/bin/kata-runtime --default-runtime=kata-runtime</span></span><br><span class="line"><span class="string">EOF</span></span><br></pre></td></tr></table></figure>
-2. Docker `daemon.json`
-    Create docker configuration folder.
-    <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ sudo mkdir -p &#x2F;etc&#x2F;docker</span><br></pre></td></tr></table></figure>
-    Add the following definitions to `/etc/docker/daemon.json`:
-    <figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;default-runtime&quot;</span>: <span class="string">&quot;kata-runtime&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;runtimes&quot;</span>: &#123;</span><br><span class="line">    <span class="attr">&quot;kata-runtime&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;path&quot;</span>: <span class="string">&quot;/usr/bin/kata-runtime&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-3. Restart the Docker systemd service with the following commands:
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo systemctl daemon-reload</span><br><span class="line">$ sudo systemctl restart docker</span><br></pre></td></tr></table></figure>
-4. Run Kata Containers
-You are now ready to run Kata Containers:
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo docker run -itd --name busybox1 busybox</span><br></pre></td></tr></table></figure>
-5. 查询使用kata container创建的容器
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">    root@ubuntu-001:~<span class="comment"># kata-runtime list</span></span><br><span class="line">ID                                                                 PID         STATUS      BUNDLE                                                                                                                CREATED                          OWNER</span><br><span class="line">5dcc8dc243fd658317ce6ecc5163d9b936044123c4e0578cbd54567a953531a7   3965        running     /run/containerd/io.containerd.runtime.v2.task/moby/5dcc8dc243fd658317ce6ecc5163d9b936044123c4e0578cbd54567a953531a7   2021-02-07T02:44:50.342490835Z   <span class="comment">#0</span></span><br><span class="line"></span><br><span class="line">    root@ubuntu-001:~<span class="comment"># ps -ef|grep 3965</span></span><br><span class="line">root       3965   3892  0 10:44 ?        00:00:00 /usr/libexec/kata-containers/kata-shim -agent unix:///run/vc/sbs/5dcc8dc243fd658317ce6ecc5163d9b936044123c4e0578cbd54567a953531a7/proxy.sock -container 5dcc8dc243fd658317ce6ecc5163d9b936044123c4e0578cbd54567a953531a7 -exec-id 5dcc8dc243fd658317ce6ecc5163d9b936044123c4e0578cbd54567a953531a7 -terminal</span><br></pre></td></tr></table></figure></code></pre>
-<h1 id="比较kata-container-与-runc-创建的容器不同"><a href="#比较kata-container-与-runc-创建的容器不同" class="headerlink" title="比较kata container 与 runc 创建的容器不同"></a>比较kata container 与 runc 创建的容器不同</h1><p>默认安装docker，默认运行时是runc，上述配置操作后将默认运行时修改为kata-runtime</p>
-<pre><code><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># docker info|grep &quot;Runtime&quot;</span></span><br><span class="line">Runtimes: io.containerd.runc.v2 io.containerd.runtime.v1.linux runc</span><br><span class="line">Default Runtime: runc</span><br></pre></td></tr></table></figure>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># docker info|grep &quot;Runtime&quot;</span></span><br><span class="line">Runtimes: io.containerd.runc.v2 io.containerd.runtime.v1.linux kata-runtime runc</span><br><span class="line">Default Runtime: kata-runtime</span><br></pre></td></tr></table></figure></code></pre>
-<p>使用runc创建容器：docker run -itd –runtime runc –name busybox2 busybox<br>    <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">root@ubuntu-001:~<span class="comment"># docker exec -it busybox1 sh</span></span><br><span class="line">/ <span class="comment"># uname -a</span></span><br><span class="line">Linux 5dcc8dc243fd 5.4.60-52.container <span class="comment">#1 SMP Sat Jan 16 05:49:34 UTC 2021 x86_64 GNU/Linux</span></span><br><span class="line">/ <span class="comment"># </span></span><br><span class="line">root@ubuntu-001:~<span class="comment"># docker exec -it busybox2 sh</span></span><br><span class="line">/ <span class="comment"># uname -a</span></span><br><span class="line">Linux d1e322ad99f9 5.4.0-65-generic <span class="comment">#73~18.04.1-Ubuntu SMP Tue Jan 19 09:02:24 UTC 2021 x86_64 GNU/Linux</span></span><br><span class="line">/ <span class="comment"># </span></span><br><span class="line">root@ubuntu-001:~<span class="comment"># uname -a</span></span><br><span class="line">Linux ubuntu-001 5.4.0-65-generic <span class="comment">#73~18.04.1-Ubuntu SMP Tue Jan 19 09:02:24 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux</span></span><br></pre></td></tr></table></figure><br>可以看到runc创建的容器，和宿主机Kernel相同，而kata创建的容器使用的是自己kernel</p>
-]]></content>
-  </entry>
-  <entry>
     <title>go中的defer关键字</title>
     <url>/2021/01/27/go%E4%B8%AD%E7%9A%84defer%E5%85%B3%E9%94%AE%E5%AD%97/</url>
     <content><![CDATA[<p>摘自：<a href="https://tiancaiamao.gitbooks.io/go-internals/content/zh/03.4.html">https://tiancaiamao.gitbooks.io/go-internals/content/zh/03.4.html</a></p>
@@ -126,6 +99,41 @@ You are now ready to run Kata Containers:
       </categories>
       <tags>
         <tag>go</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker with kata-container</title>
+    <url>/2021/02/07/docker-with-kata-container/</url>
+    <content><![CDATA[<h1 id="前提条件"><a href="#前提条件" class="headerlink" title="前提条件"></a>前提条件</h1><p>  已安装docker</p>
+<h1 id="安装Kata-Containers"><a href="#安装Kata-Containers" class="headerlink" title="安装Kata Containers"></a>安装Kata Containers</h1><pre><code><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ARCH=$(arch)</span><br><span class="line">$ BRANCH=<span class="string">&quot;<span class="variable">$&#123;BRANCH:-master&#125;</span>&quot;</span></span><br><span class="line">$ sudo sh -c <span class="string">&quot;echo &#x27;deb http://download.opensuse.org/repositories/home:/katacontainers:/releases:/<span class="variable">$&#123;ARCH&#125;</span>:/<span class="variable">$&#123;BRANCH&#125;</span>/xUbuntu_<span class="subst">$(lsb_release -rs)</span>/ /&#x27; &gt; /etc/apt/sources.list.d/kata-containers.list&quot;</span></span><br><span class="line">$ curl -sL  http://download.opensuse.org/repositories/home:/katacontainers:/releases:/<span class="variable">$&#123;ARCH&#125;</span>:/<span class="variable">$&#123;BRANCH&#125;</span>/xUbuntu_$(lsb_release -rs)/Release.key | sudo apt-key add -</span><br><span class="line">$ sudo -E apt-get update</span><br><span class="line">$ sudo -E apt-get -y install kata-runtime kata-proxy kata-shim</span><br></pre></td></tr></table></figure></code></pre>
+<h1 id="配置docker使用Kata-Containers-两种方式二选一"><a href="#配置docker使用Kata-Containers-两种方式二选一" class="headerlink" title="配置docker使用Kata Containers(两种方式二选一)"></a>配置docker使用Kata Containers(两种方式二选一)</h1><pre><code>1. systemd (this is the default and is applied automatically if you select the
+    [automatic installation](https://github.com/kata-containers/documentation/tree/master/install#automatic-installation) option)
+
+    <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo mkdir -p /etc/systemd/system/docker.service.d/</span><br><span class="line">$ cat &lt;&lt;<span class="string">EOF | sudo tee /etc/systemd/system/docker.service.d/kata-containers.conf</span></span><br><span class="line"><span class="string">[Service]</span></span><br><span class="line"><span class="string">ExecStart=</span></span><br><span class="line"><span class="string">ExecStart=/usr/bin/dockerd -D --add-runtime kata-runtime=/usr/bin/kata-runtime --default-runtime=kata-runtime</span></span><br><span class="line"><span class="string">EOF</span></span><br></pre></td></tr></table></figure>
+2. 配置/etc/docker/daemon.json文件
+    Create docker configuration folder.
+    <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ sudo mkdir -p &#x2F;etc&#x2F;docker</span><br></pre></td></tr></table></figure>
+    Add the following definitions to `/etc/docker/daemon.json`:
+    <figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;default-runtime&quot;</span>: <span class="string">&quot;kata-runtime&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;runtimes&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;kata-runtime&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;path&quot;</span>: <span class="string">&quot;/usr/bin/kata-runtime&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+3. 重启docker服务
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo systemctl daemon-reload</span><br><span class="line">$ sudo systemctl restart docker</span><br></pre></td></tr></table></figure>
+4. 运行 Kata Containers
+You are now ready to run Kata Containers:
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo docker run -itd --name busybox1 busybox</span><br></pre></td></tr></table></figure>
+5. 查询使用kata container创建的容器
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">    root@ubuntu-001:~<span class="comment"># kata-runtime list</span></span><br><span class="line">ID                                                                 PID         STATUS      BUNDLE                                                                                                                CREATED                          OWNER</span><br><span class="line">5dcc8dc243fd658317ce6ecc5163d9b936044123c4e0578cbd54567a953531a7   3965        running     /run/containerd/io.containerd.runtime.v2.task/moby/5dcc8dc243fd658317ce6ecc5163d9b936044123c4e0578cbd54567a953531a7   2021-02-07T02:44:50.342490835Z   <span class="comment">#0</span></span><br><span class="line"></span><br><span class="line">    root@ubuntu-001:~<span class="comment"># ps -ef|grep 3965</span></span><br><span class="line">root       3965   3892  0 10:44 ?        00:00:00 /usr/libexec/kata-containers/kata-shim -agent unix:///run/vc/sbs/5dcc8dc243fd658317ce6ecc5163d9b936044123c4e0578cbd54567a953531a7/proxy.sock -container 5dcc8dc243fd658317ce6ecc5163d9b936044123c4e0578cbd54567a953531a7 -exec-id 5dcc8dc243fd658317ce6ecc5163d9b936044123c4e0578cbd54567a953531a7 -terminal</span><br></pre></td></tr></table></figure></code></pre>
+<h1 id="比较Kata-Containers-与-runc-创建的容器不同"><a href="#比较Kata-Containers-与-runc-创建的容器不同" class="headerlink" title="比较Kata Containers 与 runc 创建的容器不同"></a>比较Kata Containers 与 runc 创建的容器不同</h1><p>默认安装docker，默认运行时是runc，上述配置操作后将默认运行时修改为kata-runtime</p>
+<pre><code><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># docker info|grep &quot;Runtime&quot;</span></span><br><span class="line">Runtimes: io.containerd.runc.v2 io.containerd.runtime.v1.linux runc</span><br><span class="line">Default Runtime: runc</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># docker info|grep &quot;Runtime&quot;</span></span><br><span class="line">Runtimes: io.containerd.runc.v2 io.containerd.runtime.v1.linux kata-runtime runc</span><br><span class="line">Default Runtime: kata-runtime</span><br></pre></td></tr></table></figure></code></pre>
+<p>使用runc创建容器：docker run -itd –runtime runc –name busybox2 busybox<br>    <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">root@ubuntu-001:~<span class="comment"># docker exec -it busybox1 sh</span></span><br><span class="line">/ <span class="comment"># uname -a</span></span><br><span class="line">Linux 5dcc8dc243fd 5.4.60-52.container <span class="comment">#1 SMP Sat Jan 16 05:49:34 UTC 2021 x86_64 GNU/Linux</span></span><br><span class="line">/ <span class="comment"># </span></span><br><span class="line">root@ubuntu-001:~<span class="comment"># docker exec -it busybox2 sh</span></span><br><span class="line">/ <span class="comment"># uname -a</span></span><br><span class="line">Linux d1e322ad99f9 5.4.0-65-generic <span class="comment">#73~18.04.1-Ubuntu SMP Tue Jan 19 09:02:24 UTC 2021 x86_64 GNU/Linux</span></span><br><span class="line">/ <span class="comment"># </span></span><br><span class="line">root@ubuntu-001:~<span class="comment"># uname -a</span></span><br><span class="line">Linux ubuntu-001 5.4.0-65-generic <span class="comment">#73~18.04.1-Ubuntu SMP Tue Jan 19 09:02:24 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux</span></span><br></pre></td></tr></table></figure><br>可以看到runc创建的容器，和宿主机Kernel相同，而kata创建的容器使用的是自己kernel</p>
+]]></content>
+      <categories>
+        <category>kata-containers</category>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>kata-containers</tag>
+        <tag>docker</tag>
       </tags>
   </entry>
   <entry>
@@ -198,6 +206,35 @@ You are now ready to run Kata Containers:
       </tags>
   </entry>
   <entry>
+    <title>有用的链接</title>
+    <url>/2020/12/24/%E6%9C%89%E7%94%A8%E7%9A%84%E9%93%BE%E6%8E%A5/</url>
+    <content><![CDATA[<table>
+<thead>
+<tr>
+<th>技术</th>
+<th align="right">链接</th>
+<th align="center">简介</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SimpleCV</td>
+<td align="right"><a href="http://simplecv.org/">http://simplecv.org/</a></td>
+<td align="center">开源的机器视觉库（对OpenCV python库的封装，对python3不支持）</td>
+</tr>
+<tr>
+<td>xxx</td>
+<td align="right">$1</td>
+<td align="center">6</td>
+</tr>
+<tr>
+<td>草莓</td>
+<td align="right">$1</td>
+<td align="center">7</td>
+</tr>
+</tbody></table>
+]]></content>
+  </entry>
+  <entry>
     <title>如何配置kubernetes的pod从私有仓库拉取镜像</title>
     <url>/2020/12/01/%E5%A6%82%E4%BD%95%E9%85%8D%E7%BD%AEkubernetes%E7%9A%84pod%E4%BB%8E%E7%A7%81%E6%9C%89%E4%BB%93%E5%BA%93%E6%8B%89%E5%8F%96%E9%95%9C%E5%83%8F/</url>
     <content><![CDATA[<p>在实际使用中，用户往往搭建了自己的私有镜像仓库。kubernetes用户创建pod的过程中，如何从私有镜像仓库拉取容器镜像？</p>
@@ -238,38 +275,9 @@ You are now ready to run Kata Containers:
         <category>kubernetes</category>
       </categories>
       <tags>
-        <tag>kubernetes</tag>
         <tag>docker</tag>
+        <tag>kubernetes</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>有用的链接</title>
-    <url>/2020/12/24/%E6%9C%89%E7%94%A8%E7%9A%84%E9%93%BE%E6%8E%A5/</url>
-    <content><![CDATA[<table>
-<thead>
-<tr>
-<th>技术</th>
-<th align="right">链接</th>
-<th align="center">简介</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>SimpleCV</td>
-<td align="right"><a href="http://simplecv.org/">http://simplecv.org/</a></td>
-<td align="center">开源的机器视觉库（对OpenCV python库的封装，对python3不支持）</td>
-</tr>
-<tr>
-<td>xxx</td>
-<td align="right">$1</td>
-<td align="center">6</td>
-</tr>
-<tr>
-<td>草莓</td>
-<td align="right">$1</td>
-<td align="center">7</td>
-</tr>
-</tbody></table>
-]]></content>
   </entry>
   <entry>
     <title>kind快速部署Kubernetes环境</title>
