@@ -102,7 +102,7 @@
       <span id="busuanzi_value_page_pv"></span> 点击
     </span>
       <span class="slash">/</span>
-      <span class="read">阅读耗时 28 分钟</span>
+      <span class="read">阅读耗时 29 分钟</span>
     </header>
 
     <div class="post-content">
@@ -112,6 +112,7 @@
 <p>containerd在安装docker（新版本docker）已经作为docker依赖项安装了</p>
 <p>ctr是containerd的命令行工具（containerd CLI）</p>
 <p>cri is a native plugin of containerd 1.1 and above. It is built into containerd and enabled by default. You do not need to install cri if you have containerd 1.1 or above. Just remove the cri plugin from the list of disabled_plugins in the containerd configuration file (/etc/containerd/config.toml).</p>
+<p><strong>目前的主要问题是，Kata 不支持 host 网络。而 Kubernetes 中，etcd、nodelocaldns、kube-apiserver、kube-scheduler、metrics-server、node-exporter、kube-proxy、calico、kube-controller-manager 等，也就是 Static Pod 和 Daemonset 都会使用 host 网络。所以在安装部署时，依然使用 runc 作为默认的运行时，而将 kata-runtime 作为可选的运行时给特定的负载使用。</strong></p>
 <h1 id="基于kubeadm搭建kubernetes集群"><a href="#基于kubeadm搭建kubernetes集群" class="headerlink" title="基于kubeadm搭建kubernetes集群"></a>基于kubeadm搭建kubernetes集群</h1><h2 id="1、安装kubelet、kubeadm-和-kubectl"><a href="#1、安装kubelet、kubeadm-和-kubectl" class="headerlink" title="1、安装kubelet、kubeadm 和 kubectl"></a>1、安装kubelet、kubeadm 和 kubectl</h2><p><strong>配置kubernetes.repo的源，由于官方源国内无法访问，这里使用阿里云源</strong></p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">curl https:&#x2F;&#x2F;mirrors.aliyun.com&#x2F;kubernetes&#x2F;apt&#x2F;doc&#x2F;apt-key.gpg | apt-key add - </span><br><span class="line">cat &lt;&lt;EOF &gt;&#x2F;etc&#x2F;apt&#x2F;sources.list.d&#x2F;kubernetes.list</span><br><span class="line">deb https:&#x2F;&#x2F;mirrors.aliyun.com&#x2F;kubernetes&#x2F;apt&#x2F; kubernetes-xenial main</span><br><span class="line">EOF  </span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
