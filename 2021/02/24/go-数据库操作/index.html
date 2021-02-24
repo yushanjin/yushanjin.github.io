@@ -178,10 +178,113 @@ Records: 2  Duplicates: 0  Warnings: 0</code></pre>
 
 <h2 id="删除"><a href="#删除" class="headerlink" title="删除"></a>删除</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 删除数据</span><br><span class="line">result, err &#x3D; db.Exec(&quot;DELETE FROM &#96;user&#96; WHERE &#96;name&#96;&#x3D;?&quot;, &quot;tom&quot;)</span><br><span class="line">if err !&#x3D; nil &#123;</span><br><span class="line">    fmt.Println(&quot;delete data failed:&quot;, err.Error())</span><br><span class="line">    return</span><br><span class="line">&#125;</span><br><span class="line">num, err &#x3D; result.RowsAffected()</span><br><span class="line">if err !&#x3D; nil &#123;</span><br><span class="line">    fmt.Println(&quot;fetch row affected failed:&quot;, err.Error())</span><br><span class="line">    return</span><br><span class="line">&#125;</span><br><span class="line">fmt.Println(&quot;delete record number&quot;, num)</span><br></pre></td></tr></table></figure>
 
-<h1 id="完整代码"><a href="#完整代码" class="headerlink" title="完整代码"></a>完整代码</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">	&quot;database&#x2F;sql&quot;</span><br><span class="line">	&quot;fmt&quot;</span><br><span class="line">	_ &quot;github.com&#x2F;go-sql-driver&#x2F;mysql&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">	&#x2F;&#x2F; 打开连接</span><br><span class="line">	db, err:&#x3D; sql.Open(&quot;mysql&quot;, &quot;root:root@12345@tcp(10.0.105.121:30591)&#x2F;test?charset&#x3D;utf8&quot;)</span><br><span class="line">	&#x2F;&#x2F; 打开连接  方法是 sql.Open 第一个参数是 数据库类型. 第二个是 用户名:密码@网络协议(ip:port)&#x2F;需要查询的数据库名</span><br><span class="line">	if err !&#x3D; nil &#123;</span><br><span class="line">		fmt.Println(&quot;failed to open database:&quot;, err.Error())</span><br><span class="line">		panic(err.Error())</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	defer db.Close()</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F; 尝试连接数据库</span><br><span class="line">	err &#x3D; db.Ping()</span><br><span class="line">	if err !&#x3D; nil &#123;</span><br><span class="line">		fmt.Println(&quot;connect mysql failed：&quot;, err.Error())</span><br><span class="line">		panic(err.Error())</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Println(&quot;connect mysql success&quot;)</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F; 获取USERS表中的记录</span><br><span class="line">	rows, err :&#x3D; db.Query(&quot;SELECT * FROM user&quot;)</span><br><span class="line">	if err !&#x3D; nil &#123;</span><br><span class="line">		fmt.Println(&quot;fetech data failed:&quot;, err.Error())</span><br><span class="line">		panic(err.Error())</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	defer rows.Close()</span><br><span class="line">	for rows.Next() &#123;</span><br><span class="line">		var uid int</span><br><span class="line">		var name, password string</span><br><span class="line">		rows.Scan(&amp;uid, &amp;name, &amp;password)</span><br><span class="line">		fmt.Println(&quot;uid:&quot;, uid, &quot;name:&quot;, name, &quot;password:&quot;, password)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F; 插入一条新数据</span><br><span class="line">	result, err :&#x3D; db.Exec(&quot;INSERT INTO &#96;user&#96;(&#96;name&#96;,&#96;password&#96;) VALUES(&#39;tom&#39;, &#39;tom&#39;)&quot;)</span><br><span class="line">	if err !&#x3D; nil &#123;</span><br><span class="line">		fmt.Println(&quot;insert data failed:&quot;, err.Error())</span><br><span class="line">		panic(err.Error())</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	id, err :&#x3D; result.LastInsertId()</span><br><span class="line">	if err !&#x3D; nil &#123;</span><br><span class="line">		fmt.Println(&quot;fetch last insert id failed:&quot;, err.Error())</span><br><span class="line">		panic(err.Error())</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Println(&quot;insert new record&quot;, id)</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F; 更新一条数据</span><br><span class="line">	result, err &#x3D; db.Exec(&quot;UPDATE &#96;user&#96; SET &#96;password&#96;&#x3D;? WHERE &#96;name&#96;&#x3D;?&quot;, &quot;tom_new_password&quot;, &quot;tom&quot;)</span><br><span class="line">	if err !&#x3D; nil &#123;</span><br><span class="line">		fmt.Println(&quot;update data failed:&quot;, err.Error())</span><br><span class="line">		panic(err.Error())</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	num, err :&#x3D; result.RowsAffected()</span><br><span class="line">	if err !&#x3D; nil &#123;</span><br><span class="line">		fmt.Println(&quot;fetch row affected failed:&quot;, err.Error())</span><br><span class="line">		panic(err.Error())</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Println(&quot;update record number&quot;, num)</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F; 删除数据</span><br><span class="line">	result, err &#x3D; db.Exec(&quot;DELETE FROM &#96;user&#96; WHERE &#96;name&#96;&#x3D;?&quot;, &quot;tom&quot;)</span><br><span class="line">	if err !&#x3D; nil &#123;</span><br><span class="line">		fmt.Println(&quot;delete data failed:&quot;, err.Error())</span><br><span class="line">		panic(err.Error())</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	num, err &#x3D; result.RowsAffected()</span><br><span class="line">	if err !&#x3D; nil &#123;</span><br><span class="line">		fmt.Println(&quot;fetch row affected failed:&quot;, err.Error())</span><br><span class="line">		panic(err.Error())</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Println(&quot;delete record number&quot;, num)</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<details>
+  <summary>完整代码及运行结果</summary>
+  <pre><code> 
+    完整代码
+    package main
 
-<h1 id="运行结果"><a href="#运行结果" class="headerlink" title="运行结果"></a>运行结果</h1><p>connect mysql success<br>uid: 1 name: nick password: nick<br>uid: 2 name: jacky password: jacky<br>insert new record 3<br>update record number 1<br>delete record number 1</p>
-<p>Process finished with exit code 0<br>参考：</p>
+<pre><code>import (
+    &quot;database/sql&quot;
+    &quot;fmt&quot;
+    _ &quot;github.com/go-sql-driver/mysql&quot;
+)
+
+func main() &#123;
+    // 打开连接
+    db, err:= sql.Open(&quot;mysql&quot;, &quot;root:root@12345@tcp(10.0.105.121:30591)/test?charset=utf8&quot;)
+    // 打开连接  方法是 sql.Open 第一个参数是 数据库类型. 第二个是 用户名:密码@网络协议(ip:port)/需要查询的数据库名
+    if err != nil &#123;
+        fmt.Println(&quot;failed to open database:&quot;, err.Error())
+        panic(err.Error())
+        return
+    &#125;
+    defer db.Close()
+
+    // 尝试连接数据库
+    err = db.Ping()
+    if err != nil &#123;
+        fmt.Println(&quot;connect mysql failed：&quot;, err.Error())
+        panic(err.Error())
+        return
+    &#125;
+    fmt.Println(&quot;connect mysql success&quot;)
+
+    // 获取USERS表中的记录
+    rows, err := db.Query(&quot;SELECT * FROM user&quot;)
+    if err != nil &#123;
+        fmt.Println(&quot;fetech data failed:&quot;, err.Error())
+        panic(err.Error())
+        return
+    &#125;
+    defer rows.Close()
+    for rows.Next() &#123;
+        var uid int
+        var name, password string
+        rows.Scan(&amp;uid, &amp;name, &amp;password)
+        fmt.Println(&quot;uid:&quot;, uid, &quot;name:&quot;, name, &quot;password:&quot;, password)
+    &#125;
+
+    // 插入一条新数据
+    result, err := db.Exec(&quot;INSERT INTO `user`(`name`,`password`) VALUES(&#39;tom&#39;, &#39;tom&#39;)&quot;)
+    if err != nil &#123;
+        fmt.Println(&quot;insert data failed:&quot;, err.Error())
+        panic(err.Error())
+        return
+    &#125;
+    id, err := result.LastInsertId()
+    if err != nil &#123;
+        fmt.Println(&quot;fetch last insert id failed:&quot;, err.Error())
+        panic(err.Error())
+        return
+    &#125;
+    fmt.Println(&quot;insert new record&quot;, id)
+
+    // 更新一条数据
+    result, err = db.Exec(&quot;UPDATE `user` SET `password`=? WHERE `name`=?&quot;, &quot;tom_new_password&quot;, &quot;tom&quot;)
+    if err != nil &#123;
+        fmt.Println(&quot;update data failed:&quot;, err.Error())
+        panic(err.Error())
+        return
+    &#125;
+    num, err := result.RowsAffected()
+    if err != nil &#123;
+        fmt.Println(&quot;fetch row affected failed:&quot;, err.Error())
+        panic(err.Error())
+        return
+    &#125;
+    fmt.Println(&quot;update record number&quot;, num)
+
+    // 删除数据
+    result, err = db.Exec(&quot;DELETE FROM `user` WHERE `name`=?&quot;, &quot;tom&quot;)
+    if err != nil &#123;
+        fmt.Println(&quot;delete data failed:&quot;, err.Error())
+        panic(err.Error())
+        return
+    &#125;
+    num, err = result.RowsAffected()
+    if err != nil &#123;
+        fmt.Println(&quot;fetch row affected failed:&quot;, err.Error())
+        panic(err.Error())
+        return
+    &#125;
+    fmt.Println(&quot;delete record number&quot;, num)
+
+    # 运行结果
+    connect mysql success
+    uid: 1 name: nick password: nick
+    uid: 2 name: jacky password: jacky
+    insert new record 3
+    update record number 1
+    delete record number 1
+    Process finished with exit code 0</code></pre>
+<p>  </code></pre></p>
+</details>
+
+
+
+
+<p>参考：</p>
 <p>1、[<a target="_blank" rel="noopener" href="https://studygolang.com/articles/10629]https://studygolang.com/articles/10629">https://studygolang.com/articles/10629]https://studygolang.com/articles/10629</a></p>
 <p>2、[<a target="_blank" rel="noopener" href="https://tutorialedge.net/golang/golang-mysql-tutorial/]https://tutorialedge.net/golang/golang-mysql-tutorial/">https://tutorialedge.net/golang/golang-mysql-tutorial/]https://tutorialedge.net/golang/golang-mysql-tutorial/</a></p>
 
@@ -193,7 +296,7 @@ Records: 2  Duplicates: 0  Warnings: 0</code></pre>
     
   <div id="toc" class="toc-article">
     <strong class="toc-title">目录</strong>
-    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E6%B5%8B%E8%AF%95%E6%95%B0%E6%8D%AE"><span class="toc-text">准备测试数据</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%BF%9E%E6%8E%A5%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="toc-text">连接数据库</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%B3%E9%97%AD%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="toc-text">关闭数据库</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#CRUD"><span class="toc-text">CRUD</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9F%A5%E8%AF%A2"><span class="toc-text">查询</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%92%E5%85%A5"><span class="toc-text">插入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0"><span class="toc-text">更新</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A0%E9%99%A4"><span class="toc-text">删除</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81"><span class="toc-text">完整代码</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E7%BB%93%E6%9E%9C"><span class="toc-text">运行结果</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E6%B5%8B%E8%AF%95%E6%95%B0%E6%8D%AE"><span class="toc-text">准备测试数据</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%BF%9E%E6%8E%A5%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="toc-text">连接数据库</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%B3%E9%97%AD%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="toc-text">关闭数据库</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#CRUD"><span class="toc-text">CRUD</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9F%A5%E8%AF%A2"><span class="toc-text">查询</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%92%E5%85%A5"><span class="toc-text">插入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0"><span class="toc-text">更新</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A0%E9%99%A4"><span class="toc-text">删除</span></a></li></ol></li></ol>
   </div>
 
 

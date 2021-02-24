@@ -62,6 +62,49 @@
       </tags>
   </entry>
   <entry>
+    <title>docker with kata-container</title>
+    <url>/2021/02/07/docker-with-kata-container/</url>
+    <content><![CDATA[<h1 id="前提条件"><a href="#前提条件" class="headerlink" title="前提条件"></a>前提条件</h1><ol>
+<li>Ubuntu 18.04</li>
+<li>已安装docker</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">root@ubuntu-001:~# lsb_release -a</span><br><span class="line">No LSB modules are available.</span><br><span class="line">Distributor ID:	Ubuntu</span><br><span class="line">Description:	Ubuntu 18.04.3 LTS</span><br><span class="line">Release:	18.04</span><br><span class="line">Codename:	bionic</span><br><span class="line">root@ubuntu-001:~# </span><br><span class="line">root@ubuntu-001:~# </span><br><span class="line">root@ubuntu-001:~# </span><br><span class="line">root@ubuntu-001:~# docker version</span><br><span class="line">Client: Docker Engine - Community</span><br><span class="line"> Version:           20.10.3</span><br><span class="line"> API version:       1.41</span><br><span class="line"> Go version:        go1.13.15</span><br><span class="line"> Git commit:        48d30b5</span><br><span class="line"> Built:             Fri Jan 29 14:33:13 2021</span><br><span class="line"> OS&#x2F;Arch:           linux&#x2F;amd64</span><br><span class="line"> Context:           default</span><br><span class="line"> Experimental:      true</span><br><span class="line"></span><br><span class="line">Server: Docker Engine - Community</span><br><span class="line"> Engine:</span><br><span class="line">  Version:          20.10.3</span><br><span class="line">  API version:      1.41 (minimum version 1.12)</span><br><span class="line">  Go version:       go1.13.15</span><br><span class="line">  Git commit:       46229ca</span><br><span class="line">  Built:            Fri Jan 29 14:31:25 2021</span><br><span class="line">  OS&#x2F;Arch:          linux&#x2F;amd64</span><br><span class="line">  Experimental:     false</span><br><span class="line"> containerd:</span><br><span class="line">  Version:          1.4.3</span><br><span class="line">  GitCommit:        269548fa27e0089a8b8278fc4fc781d7f65a939b</span><br><span class="line"> docker-init:</span><br><span class="line">  Version:          0.19.0</span><br><span class="line">  GitCommit:        de40ad0</span><br></pre></td></tr></table></figure>
+
+<h1 id="安装Kata-Containers"><a href="#安装Kata-Containers" class="headerlink" title="安装Kata Containers"></a>安装Kata Containers</h1><p>参考：<a href="https://github.com/kata-containers/documentation/blob/master/install/README.md">https://github.com/kata-containers/documentation/blob/master/install/README.md</a></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ARCH=$(arch)</span><br><span class="line">$ BRANCH=<span class="string">&quot;<span class="variable">$&#123;BRANCH:-master&#125;</span>&quot;</span></span><br><span class="line">$ sudo sh -c <span class="string">&quot;echo &#x27;deb http://download.opensuse.org/repositories/home:/katacontainers:/releases:/<span class="variable">$&#123;ARCH&#125;</span>:/<span class="variable">$&#123;BRANCH&#125;</span>/xUbuntu_<span class="subst">$(lsb_release -rs)</span>/ /&#x27; &gt; /etc/apt/sources.list.d/kata-containers.list&quot;</span></span><br><span class="line">$ curl -sL  http://download.opensuse.org/repositories/home:/katacontainers:/releases:/<span class="variable">$&#123;ARCH&#125;</span>:/<span class="variable">$&#123;BRANCH&#125;</span>/xUbuntu_$(lsb_release -rs)/Release.key | sudo apt-key add -</span><br><span class="line">$ sudo -E apt-get update</span><br><span class="line">$ sudo -E apt-get -y install kata-runtime kata-proxy kata-shim</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">root@ubuntu-001:~# kata-runtime version</span><br><span class="line">kata-runtime  : 1.13.0-alpha0</span><br><span class="line">commit   : &lt;&lt;unknown&gt;&gt;</span><br><span class="line">OCI specs: 1.0.1-dev</span><br></pre></td></tr></table></figure>
+
+<h1 id="配置docker使用Kata-Containers-两种方式二选一"><a href="#配置docker使用Kata-Containers-两种方式二选一" class="headerlink" title="配置docker使用Kata Containers(两种方式二选一)"></a>配置docker使用Kata Containers(两种方式二选一)</h1><ol>
+<li>systemd (this is the default and is applied automatically if you select the <a href="https://github.com/kata-containers/documentation/tree/master/install#automatic-installation">automatic installation</a> option) <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo mkdir -p /etc/systemd/system/docker.service.d/</span><br><span class="line">$ cat &lt;&lt;<span class="string">EOF | sudo tee /etc/systemd/system/docker.service.d/kata-containers.conf</span></span><br><span class="line"><span class="string">[Service]</span></span><br><span class="line"><span class="string">ExecStart=</span></span><br><span class="line"><span class="string">ExecStart=/usr/bin/dockerd -D --add-runtime kata-runtime=/usr/bin/kata-runtime --default-runtime=kata-runtime</span></span><br><span class="line"><span class="string">EOF</span></span><br></pre></td></tr></table></figure></li>
+<li>配置/etc/docker/daemon.json文件<br> Create docker configuration folder. <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ sudo mkdir -p &#x2F;etc&#x2F;docker</span><br></pre></td></tr></table></figure>
+ Add the following definitions to <code>/etc/docker/daemon.json</code>: <figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;default-runtime&quot;</span>: <span class="string">&quot;kata-runtime&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;runtimes&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;kata-runtime&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;path&quot;</span>: <span class="string">&quot;/usr/bin/kata-runtime&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h1 id="重启docker服务"><a href="#重启docker服务" class="headerlink" title="重启docker服务"></a>重启docker服务</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo systemctl daemon-reload</span><br><span class="line">$ sudo systemctl restart docker</span><br></pre></td></tr></table></figure>
+
+<h1 id="运行-Kata-Containers"><a href="#运行-Kata-Containers" class="headerlink" title="运行 Kata Containers"></a>运行 Kata Containers</h1><p>You are now ready to run Kata Containers:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ sudo docker run -itd --name busybox1 busybox</span><br></pre></td></tr></table></figure>
+
+<h1 id="查询使用kata-container创建的容器"><a href="#查询使用kata-container创建的容器" class="headerlink" title="查询使用kata container创建的容器"></a>查询使用kata container创建的容器</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">root@ubuntu-001:~<span class="comment"># kata-runtime list</span></span><br><span class="line">ID                                                                 PID         STATUS      BUNDLE                                                                                                                CREATED                          OWNER</span><br><span class="line">5dcc8dc243fd658317ce6ecc5163d9b936044123c4e0578cbd54567a953531a7   3965        running     /run/containerd/io.containerd.runtime.v2.task/moby/5dcc8dc243fd658317ce6ecc5163d9b936044123c4e0578cbd54567a953531a7   2021-02-07T02:44:50.342490835Z   <span class="comment">#0</span></span><br><span class="line"></span><br><span class="line">root@ubuntu-001:~<span class="comment"># ps -ef|grep 3965</span></span><br><span class="line">root       3965   3892  0 10:44 ?        00:00:00 /usr/libexec/kata-containers/kata-shim -agent unix:///run/vc/sbs/5dcc8dc243fd658317ce6ecc5163d9b936044123c4e0578cbd54567a953531a7/proxy.sock -container 5dcc8dc243fd658317ce6ecc5163d9b936044123c4e0578cbd54567a953531a7 -exec-id 5dcc8dc243fd658317ce6ecc5163d9b936044123c4e0578cbd54567a953531a7 -terminal</span><br></pre></td></tr></table></figure>
+
+<h1 id="比较Kata-Containers-与-runc-创建的容器不同"><a href="#比较Kata-Containers-与-runc-创建的容器不同" class="headerlink" title="比较Kata Containers 与 runc 创建的容器不同"></a>比较Kata Containers 与 runc 创建的容器不同</h1><p>默认安装docker，默认运行时是runc，上述配置操作后将默认运行时修改为kata-runtime</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># docker info|grep &quot;Runtime&quot;</span></span><br><span class="line">Runtimes: io.containerd.runc.v2 io.containerd.runtime.v1.linux runc</span><br><span class="line">Default Runtime: runc</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># docker info|grep &quot;Runtime&quot;</span></span><br><span class="line">Runtimes: io.containerd.runc.v2 io.containerd.runtime.v1.linux kata-runtime runc</span><br><span class="line">Default Runtime: kata-runtime</span><br></pre></td></tr></table></figure>
+<p>使用runc创建容器：docker run -itd –runtime runc –name busybox2 busybox</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">root@ubuntu-001:~<span class="comment"># docker exec -it busybox1 sh</span></span><br><span class="line">/ <span class="comment"># uname -a</span></span><br><span class="line">Linux 5dcc8dc243fd 5.4.60-52.container <span class="comment">#1 SMP Sat Jan 16 05:49:34 UTC 2021 x86_64 GNU/Linux</span></span><br><span class="line">/ <span class="comment"># </span></span><br><span class="line">root@ubuntu-001:~<span class="comment"># docker exec -it busybox2 sh</span></span><br><span class="line">/ <span class="comment"># uname -a</span></span><br><span class="line">Linux d1e322ad99f9 5.4.0-65-generic <span class="comment">#73~18.04.1-Ubuntu SMP Tue Jan 19 09:02:24 UTC 2021 x86_64 GNU/Linux</span></span><br><span class="line">/ <span class="comment"># </span></span><br><span class="line">root@ubuntu-001:~<span class="comment"># uname -a</span></span><br><span class="line">Linux ubuntu-001 5.4.0-65-generic <span class="comment">#73~18.04.1-Ubuntu SMP Tue Jan 19 09:02:24 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux</span></span><br></pre></td></tr></table></figure>
+<p>可以看到runc创建的容器，和宿主机Kernel相同，而kata创建的容器使用的是自己kernel</p>
+]]></content>
+      <categories>
+        <category>kata-containers</category>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>kata-containers</tag>
+        <tag>docker</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>containerd with kata-container</title>
     <url>/2021/02/07/containerd-with-kata-container/</url>
     <content><![CDATA[<p>参考：<a href="https://github.com/kata-containers/documentation/blob/master/how-to/containerd-kata.md">https://github.com/kata-containers/documentation/blob/master/how-to/containerd-kata.md</a></p>
@@ -169,10 +212,113 @@ Records: 2  Duplicates: 0  Warnings: 0</code></pre>
 
 <h2 id="删除"><a href="#删除" class="headerlink" title="删除"></a>删除</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 删除数据</span><br><span class="line">result, err &#x3D; db.Exec(&quot;DELETE FROM &#96;user&#96; WHERE &#96;name&#96;&#x3D;?&quot;, &quot;tom&quot;)</span><br><span class="line">if err !&#x3D; nil &#123;</span><br><span class="line">    fmt.Println(&quot;delete data failed:&quot;, err.Error())</span><br><span class="line">    return</span><br><span class="line">&#125;</span><br><span class="line">num, err &#x3D; result.RowsAffected()</span><br><span class="line">if err !&#x3D; nil &#123;</span><br><span class="line">    fmt.Println(&quot;fetch row affected failed:&quot;, err.Error())</span><br><span class="line">    return</span><br><span class="line">&#125;</span><br><span class="line">fmt.Println(&quot;delete record number&quot;, num)</span><br></pre></td></tr></table></figure>
 
-<h1 id="完整代码"><a href="#完整代码" class="headerlink" title="完整代码"></a>完整代码</h1><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">	&quot;database&#x2F;sql&quot;</span><br><span class="line">	&quot;fmt&quot;</span><br><span class="line">	_ &quot;github.com&#x2F;go-sql-driver&#x2F;mysql&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">	&#x2F;&#x2F; 打开连接</span><br><span class="line">	db, err:&#x3D; sql.Open(&quot;mysql&quot;, &quot;root:root@12345@tcp(10.0.105.121:30591)&#x2F;test?charset&#x3D;utf8&quot;)</span><br><span class="line">	&#x2F;&#x2F; 打开连接  方法是 sql.Open 第一个参数是 数据库类型. 第二个是 用户名:密码@网络协议(ip:port)&#x2F;需要查询的数据库名</span><br><span class="line">	if err !&#x3D; nil &#123;</span><br><span class="line">		fmt.Println(&quot;failed to open database:&quot;, err.Error())</span><br><span class="line">		panic(err.Error())</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	defer db.Close()</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F; 尝试连接数据库</span><br><span class="line">	err &#x3D; db.Ping()</span><br><span class="line">	if err !&#x3D; nil &#123;</span><br><span class="line">		fmt.Println(&quot;connect mysql failed：&quot;, err.Error())</span><br><span class="line">		panic(err.Error())</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Println(&quot;connect mysql success&quot;)</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F; 获取USERS表中的记录</span><br><span class="line">	rows, err :&#x3D; db.Query(&quot;SELECT * FROM user&quot;)</span><br><span class="line">	if err !&#x3D; nil &#123;</span><br><span class="line">		fmt.Println(&quot;fetech data failed:&quot;, err.Error())</span><br><span class="line">		panic(err.Error())</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	defer rows.Close()</span><br><span class="line">	for rows.Next() &#123;</span><br><span class="line">		var uid int</span><br><span class="line">		var name, password string</span><br><span class="line">		rows.Scan(&amp;uid, &amp;name, &amp;password)</span><br><span class="line">		fmt.Println(&quot;uid:&quot;, uid, &quot;name:&quot;, name, &quot;password:&quot;, password)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F; 插入一条新数据</span><br><span class="line">	result, err :&#x3D; db.Exec(&quot;INSERT INTO &#96;user&#96;(&#96;name&#96;,&#96;password&#96;) VALUES(&#39;tom&#39;, &#39;tom&#39;)&quot;)</span><br><span class="line">	if err !&#x3D; nil &#123;</span><br><span class="line">		fmt.Println(&quot;insert data failed:&quot;, err.Error())</span><br><span class="line">		panic(err.Error())</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	id, err :&#x3D; result.LastInsertId()</span><br><span class="line">	if err !&#x3D; nil &#123;</span><br><span class="line">		fmt.Println(&quot;fetch last insert id failed:&quot;, err.Error())</span><br><span class="line">		panic(err.Error())</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Println(&quot;insert new record&quot;, id)</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F; 更新一条数据</span><br><span class="line">	result, err &#x3D; db.Exec(&quot;UPDATE &#96;user&#96; SET &#96;password&#96;&#x3D;? WHERE &#96;name&#96;&#x3D;?&quot;, &quot;tom_new_password&quot;, &quot;tom&quot;)</span><br><span class="line">	if err !&#x3D; nil &#123;</span><br><span class="line">		fmt.Println(&quot;update data failed:&quot;, err.Error())</span><br><span class="line">		panic(err.Error())</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	num, err :&#x3D; result.RowsAffected()</span><br><span class="line">	if err !&#x3D; nil &#123;</span><br><span class="line">		fmt.Println(&quot;fetch row affected failed:&quot;, err.Error())</span><br><span class="line">		panic(err.Error())</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Println(&quot;update record number&quot;, num)</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F; 删除数据</span><br><span class="line">	result, err &#x3D; db.Exec(&quot;DELETE FROM &#96;user&#96; WHERE &#96;name&#96;&#x3D;?&quot;, &quot;tom&quot;)</span><br><span class="line">	if err !&#x3D; nil &#123;</span><br><span class="line">		fmt.Println(&quot;delete data failed:&quot;, err.Error())</span><br><span class="line">		panic(err.Error())</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	num, err &#x3D; result.RowsAffected()</span><br><span class="line">	if err !&#x3D; nil &#123;</span><br><span class="line">		fmt.Println(&quot;fetch row affected failed:&quot;, err.Error())</span><br><span class="line">		panic(err.Error())</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Println(&quot;delete record number&quot;, num)</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<details>
+  <summary>完整代码及运行结果</summary>
+  <pre><code> 
+    完整代码
+    package main
 
-<h1 id="运行结果"><a href="#运行结果" class="headerlink" title="运行结果"></a>运行结果</h1><p>connect mysql success<br>uid: 1 name: nick password: nick<br>uid: 2 name: jacky password: jacky<br>insert new record 3<br>update record number 1<br>delete record number 1</p>
-<p>Process finished with exit code 0<br>参考：</p>
+<pre><code>import (
+    &quot;database/sql&quot;
+    &quot;fmt&quot;
+    _ &quot;github.com/go-sql-driver/mysql&quot;
+)
+
+func main() &#123;
+    // 打开连接
+    db, err:= sql.Open(&quot;mysql&quot;, &quot;root:root@12345@tcp(10.0.105.121:30591)/test?charset=utf8&quot;)
+    // 打开连接  方法是 sql.Open 第一个参数是 数据库类型. 第二个是 用户名:密码@网络协议(ip:port)/需要查询的数据库名
+    if err != nil &#123;
+        fmt.Println(&quot;failed to open database:&quot;, err.Error())
+        panic(err.Error())
+        return
+    &#125;
+    defer db.Close()
+
+    // 尝试连接数据库
+    err = db.Ping()
+    if err != nil &#123;
+        fmt.Println(&quot;connect mysql failed：&quot;, err.Error())
+        panic(err.Error())
+        return
+    &#125;
+    fmt.Println(&quot;connect mysql success&quot;)
+
+    // 获取USERS表中的记录
+    rows, err := db.Query(&quot;SELECT * FROM user&quot;)
+    if err != nil &#123;
+        fmt.Println(&quot;fetech data failed:&quot;, err.Error())
+        panic(err.Error())
+        return
+    &#125;
+    defer rows.Close()
+    for rows.Next() &#123;
+        var uid int
+        var name, password string
+        rows.Scan(&amp;uid, &amp;name, &amp;password)
+        fmt.Println(&quot;uid:&quot;, uid, &quot;name:&quot;, name, &quot;password:&quot;, password)
+    &#125;
+
+    // 插入一条新数据
+    result, err := db.Exec(&quot;INSERT INTO `user`(`name`,`password`) VALUES(&#39;tom&#39;, &#39;tom&#39;)&quot;)
+    if err != nil &#123;
+        fmt.Println(&quot;insert data failed:&quot;, err.Error())
+        panic(err.Error())
+        return
+    &#125;
+    id, err := result.LastInsertId()
+    if err != nil &#123;
+        fmt.Println(&quot;fetch last insert id failed:&quot;, err.Error())
+        panic(err.Error())
+        return
+    &#125;
+    fmt.Println(&quot;insert new record&quot;, id)
+
+    // 更新一条数据
+    result, err = db.Exec(&quot;UPDATE `user` SET `password`=? WHERE `name`=?&quot;, &quot;tom_new_password&quot;, &quot;tom&quot;)
+    if err != nil &#123;
+        fmt.Println(&quot;update data failed:&quot;, err.Error())
+        panic(err.Error())
+        return
+    &#125;
+    num, err := result.RowsAffected()
+    if err != nil &#123;
+        fmt.Println(&quot;fetch row affected failed:&quot;, err.Error())
+        panic(err.Error())
+        return
+    &#125;
+    fmt.Println(&quot;update record number&quot;, num)
+
+    // 删除数据
+    result, err = db.Exec(&quot;DELETE FROM `user` WHERE `name`=?&quot;, &quot;tom&quot;)
+    if err != nil &#123;
+        fmt.Println(&quot;delete data failed:&quot;, err.Error())
+        panic(err.Error())
+        return
+    &#125;
+    num, err = result.RowsAffected()
+    if err != nil &#123;
+        fmt.Println(&quot;fetch row affected failed:&quot;, err.Error())
+        panic(err.Error())
+        return
+    &#125;
+    fmt.Println(&quot;delete record number&quot;, num)
+
+    # 运行结果
+    connect mysql success
+    uid: 1 name: nick password: nick
+    uid: 2 name: jacky password: jacky
+    insert new record 3
+    update record number 1
+    delete record number 1
+    Process finished with exit code 0</code></pre>
+<p>  </code></pre></p>
+</details>
+
+
+
+
+<p>参考：</p>
 <p>1、[<a href="https://studygolang.com/articles/10629]https://studygolang.com/articles/10629">https://studygolang.com/articles/10629]https://studygolang.com/articles/10629</a></p>
 <p>2、[<a href="https://tutorialedge.net/golang/golang-mysql-tutorial/]https://tutorialedge.net/golang/golang-mysql-tutorial/">https://tutorialedge.net/golang/golang-mysql-tutorial/]https://tutorialedge.net/golang/golang-mysql-tutorial/</a></p>
 ]]></content>
@@ -183,49 +329,6 @@ Records: 2  Duplicates: 0  Warnings: 0</code></pre>
       <tags>
         <tag>go</tag>
         <tag>mysql</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker with kata-container</title>
-    <url>/2021/02/07/docker-with-kata-container/</url>
-    <content><![CDATA[<h1 id="前提条件"><a href="#前提条件" class="headerlink" title="前提条件"></a>前提条件</h1><ol>
-<li>Ubuntu 18.04</li>
-<li>已安装docker</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">root@ubuntu-001:~# lsb_release -a</span><br><span class="line">No LSB modules are available.</span><br><span class="line">Distributor ID:	Ubuntu</span><br><span class="line">Description:	Ubuntu 18.04.3 LTS</span><br><span class="line">Release:	18.04</span><br><span class="line">Codename:	bionic</span><br><span class="line">root@ubuntu-001:~# </span><br><span class="line">root@ubuntu-001:~# </span><br><span class="line">root@ubuntu-001:~# </span><br><span class="line">root@ubuntu-001:~# docker version</span><br><span class="line">Client: Docker Engine - Community</span><br><span class="line"> Version:           20.10.3</span><br><span class="line"> API version:       1.41</span><br><span class="line"> Go version:        go1.13.15</span><br><span class="line"> Git commit:        48d30b5</span><br><span class="line"> Built:             Fri Jan 29 14:33:13 2021</span><br><span class="line"> OS&#x2F;Arch:           linux&#x2F;amd64</span><br><span class="line"> Context:           default</span><br><span class="line"> Experimental:      true</span><br><span class="line"></span><br><span class="line">Server: Docker Engine - Community</span><br><span class="line"> Engine:</span><br><span class="line">  Version:          20.10.3</span><br><span class="line">  API version:      1.41 (minimum version 1.12)</span><br><span class="line">  Go version:       go1.13.15</span><br><span class="line">  Git commit:       46229ca</span><br><span class="line">  Built:            Fri Jan 29 14:31:25 2021</span><br><span class="line">  OS&#x2F;Arch:          linux&#x2F;amd64</span><br><span class="line">  Experimental:     false</span><br><span class="line"> containerd:</span><br><span class="line">  Version:          1.4.3</span><br><span class="line">  GitCommit:        269548fa27e0089a8b8278fc4fc781d7f65a939b</span><br><span class="line"> docker-init:</span><br><span class="line">  Version:          0.19.0</span><br><span class="line">  GitCommit:        de40ad0</span><br></pre></td></tr></table></figure>
-
-<h1 id="安装Kata-Containers"><a href="#安装Kata-Containers" class="headerlink" title="安装Kata Containers"></a>安装Kata Containers</h1><p>参考：<a href="https://github.com/kata-containers/documentation/blob/master/install/README.md">https://github.com/kata-containers/documentation/blob/master/install/README.md</a></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ARCH=$(arch)</span><br><span class="line">$ BRANCH=<span class="string">&quot;<span class="variable">$&#123;BRANCH:-master&#125;</span>&quot;</span></span><br><span class="line">$ sudo sh -c <span class="string">&quot;echo &#x27;deb http://download.opensuse.org/repositories/home:/katacontainers:/releases:/<span class="variable">$&#123;ARCH&#125;</span>:/<span class="variable">$&#123;BRANCH&#125;</span>/xUbuntu_<span class="subst">$(lsb_release -rs)</span>/ /&#x27; &gt; /etc/apt/sources.list.d/kata-containers.list&quot;</span></span><br><span class="line">$ curl -sL  http://download.opensuse.org/repositories/home:/katacontainers:/releases:/<span class="variable">$&#123;ARCH&#125;</span>:/<span class="variable">$&#123;BRANCH&#125;</span>/xUbuntu_$(lsb_release -rs)/Release.key | sudo apt-key add -</span><br><span class="line">$ sudo -E apt-get update</span><br><span class="line">$ sudo -E apt-get -y install kata-runtime kata-proxy kata-shim</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">root@ubuntu-001:~# kata-runtime version</span><br><span class="line">kata-runtime  : 1.13.0-alpha0</span><br><span class="line">commit   : &lt;&lt;unknown&gt;&gt;</span><br><span class="line">OCI specs: 1.0.1-dev</span><br></pre></td></tr></table></figure>
-
-<h1 id="配置docker使用Kata-Containers-两种方式二选一"><a href="#配置docker使用Kata-Containers-两种方式二选一" class="headerlink" title="配置docker使用Kata Containers(两种方式二选一)"></a>配置docker使用Kata Containers(两种方式二选一)</h1><ol>
-<li>systemd (this is the default and is applied automatically if you select the <a href="https://github.com/kata-containers/documentation/tree/master/install#automatic-installation">automatic installation</a> option) <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo mkdir -p /etc/systemd/system/docker.service.d/</span><br><span class="line">$ cat &lt;&lt;<span class="string">EOF | sudo tee /etc/systemd/system/docker.service.d/kata-containers.conf</span></span><br><span class="line"><span class="string">[Service]</span></span><br><span class="line"><span class="string">ExecStart=</span></span><br><span class="line"><span class="string">ExecStart=/usr/bin/dockerd -D --add-runtime kata-runtime=/usr/bin/kata-runtime --default-runtime=kata-runtime</span></span><br><span class="line"><span class="string">EOF</span></span><br></pre></td></tr></table></figure></li>
-<li>配置/etc/docker/daemon.json文件<br> Create docker configuration folder. <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ sudo mkdir -p &#x2F;etc&#x2F;docker</span><br></pre></td></tr></table></figure>
- Add the following definitions to <code>/etc/docker/daemon.json</code>: <figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;default-runtime&quot;</span>: <span class="string">&quot;kata-runtime&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;runtimes&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;kata-runtime&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;path&quot;</span>: <span class="string">&quot;/usr/bin/kata-runtime&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-</li>
-</ol>
-<h1 id="重启docker服务"><a href="#重启docker服务" class="headerlink" title="重启docker服务"></a>重启docker服务</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo systemctl daemon-reload</span><br><span class="line">$ sudo systemctl restart docker</span><br></pre></td></tr></table></figure>
-
-<h1 id="运行-Kata-Containers"><a href="#运行-Kata-Containers" class="headerlink" title="运行 Kata Containers"></a>运行 Kata Containers</h1><p>You are now ready to run Kata Containers:</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ sudo docker run -itd --name busybox1 busybox</span><br></pre></td></tr></table></figure>
-
-<h1 id="查询使用kata-container创建的容器"><a href="#查询使用kata-container创建的容器" class="headerlink" title="查询使用kata container创建的容器"></a>查询使用kata container创建的容器</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">root@ubuntu-001:~<span class="comment"># kata-runtime list</span></span><br><span class="line">ID                                                                 PID         STATUS      BUNDLE                                                                                                                CREATED                          OWNER</span><br><span class="line">5dcc8dc243fd658317ce6ecc5163d9b936044123c4e0578cbd54567a953531a7   3965        running     /run/containerd/io.containerd.runtime.v2.task/moby/5dcc8dc243fd658317ce6ecc5163d9b936044123c4e0578cbd54567a953531a7   2021-02-07T02:44:50.342490835Z   <span class="comment">#0</span></span><br><span class="line"></span><br><span class="line">root@ubuntu-001:~<span class="comment"># ps -ef|grep 3965</span></span><br><span class="line">root       3965   3892  0 10:44 ?        00:00:00 /usr/libexec/kata-containers/kata-shim -agent unix:///run/vc/sbs/5dcc8dc243fd658317ce6ecc5163d9b936044123c4e0578cbd54567a953531a7/proxy.sock -container 5dcc8dc243fd658317ce6ecc5163d9b936044123c4e0578cbd54567a953531a7 -exec-id 5dcc8dc243fd658317ce6ecc5163d9b936044123c4e0578cbd54567a953531a7 -terminal</span><br></pre></td></tr></table></figure>
-
-<h1 id="比较Kata-Containers-与-runc-创建的容器不同"><a href="#比较Kata-Containers-与-runc-创建的容器不同" class="headerlink" title="比较Kata Containers 与 runc 创建的容器不同"></a>比较Kata Containers 与 runc 创建的容器不同</h1><p>默认安装docker，默认运行时是runc，上述配置操作后将默认运行时修改为kata-runtime</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># docker info|grep &quot;Runtime&quot;</span></span><br><span class="line">Runtimes: io.containerd.runc.v2 io.containerd.runtime.v1.linux runc</span><br><span class="line">Default Runtime: runc</span><br></pre></td></tr></table></figure>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># docker info|grep &quot;Runtime&quot;</span></span><br><span class="line">Runtimes: io.containerd.runc.v2 io.containerd.runtime.v1.linux kata-runtime runc</span><br><span class="line">Default Runtime: kata-runtime</span><br></pre></td></tr></table></figure>
-<p>使用runc创建容器：docker run -itd –runtime runc –name busybox2 busybox</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">root@ubuntu-001:~<span class="comment"># docker exec -it busybox1 sh</span></span><br><span class="line">/ <span class="comment"># uname -a</span></span><br><span class="line">Linux 5dcc8dc243fd 5.4.60-52.container <span class="comment">#1 SMP Sat Jan 16 05:49:34 UTC 2021 x86_64 GNU/Linux</span></span><br><span class="line">/ <span class="comment"># </span></span><br><span class="line">root@ubuntu-001:~<span class="comment"># docker exec -it busybox2 sh</span></span><br><span class="line">/ <span class="comment"># uname -a</span></span><br><span class="line">Linux d1e322ad99f9 5.4.0-65-generic <span class="comment">#73~18.04.1-Ubuntu SMP Tue Jan 19 09:02:24 UTC 2021 x86_64 GNU/Linux</span></span><br><span class="line">/ <span class="comment"># </span></span><br><span class="line">root@ubuntu-001:~<span class="comment"># uname -a</span></span><br><span class="line">Linux ubuntu-001 5.4.0-65-generic <span class="comment">#73~18.04.1-Ubuntu SMP Tue Jan 19 09:02:24 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux</span></span><br></pre></td></tr></table></figure>
-<p>可以看到runc创建的容器，和宿主机Kernel相同，而kata创建的容器使用的是自己kernel</p>
-]]></content>
-      <categories>
-        <category>kata-containers</category>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>kata-containers</tag>
-        <tag>docker</tag>
       </tags>
   </entry>
   <entry>
