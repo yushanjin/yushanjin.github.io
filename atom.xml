@@ -6,7 +6,7 @@
   <link href="https://yushanjin.github.io/atom.xml" rel="self"/>
   
   <link href="https://yushanjin.github.io/"/>
-  <updated>2021-02-24T03:01:21.101Z</updated>
+  <updated>2021-02-24T03:03:26.290Z</updated>
   <id>https://yushanjin.github.io/</id>
   
   <author>
@@ -21,12 +21,12 @@
     <link href="https://yushanjin.github.io/2021/02/24/go%E4%B8%ADString-Int%E8%BD%AC%E6%8D%A2/"/>
     <id>https://yushanjin.github.io/2021/02/24/go%E4%B8%ADString-Int%E8%BD%AC%E6%8D%A2/</id>
     <published>2021-02-24T02:59:06.000Z</published>
-    <updated>2021-02-24T03:01:21.101Z</updated>
+    <updated>2021-02-24T03:03:26.290Z</updated>
     
-    <content type="html"><![CDATA[<p>GO数值和字符串的相互转换，借助stroncv包的函数来转换</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">&quot;fmt&quot;</span><br><span class="line">&quot;strconv&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line"></span><br><span class="line">myAgeString :&#x3D; &quot;26&quot;</span><br><span class="line">fmt.Printf(&quot;My Age: %s\n&quot;, myAgeString)</span><br><span class="line"></span><br><span class="line">ageValue1, err :&#x3D; strconv.Atoi(myAgeString)</span><br><span class="line">if err !&#x3D; nil &#123;</span><br><span class="line">fmt.Println(err)</span><br><span class="line">&#125;</span><br><span class="line">fmt.Printf(&quot;Age: %d\n&quot;, ageValue1)</span><br><span class="line"></span><br><span class="line">ageValue2 :&#x3D; strconv.Itoa(ageValue1)</span><br><span class="line">fmt.Printf(&quot;New Age: %s\n&quot;,ageValue2)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+    <content type="html"><![CDATA[<p>GO数值和字符串的相互转换，借助strconv包的函数来转换</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">&quot;fmt&quot;</span><br><span class="line">&quot;strconv&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line"></span><br><span class="line">myAgeString :&#x3D; &quot;26&quot;</span><br><span class="line">fmt.Printf(&quot;My Age: %s\n&quot;, myAgeString)</span><br><span class="line"></span><br><span class="line">ageValue1, err :&#x3D; strconv.Atoi(myAgeString)</span><br><span class="line">if err !&#x3D; nil &#123;</span><br><span class="line">fmt.Println(err)</span><br><span class="line">&#125;</span><br><span class="line">fmt.Printf(&quot;Age: %d\n&quot;, ageValue1)</span><br><span class="line"></span><br><span class="line">ageValue2 :&#x3D; strconv.Itoa(ageValue1)</span><br><span class="line">fmt.Printf(&quot;New Age: %s\n&quot;,ageValue2)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
     
     
-    <summary type="html">GO数值和字符串的相互转换，借助stroncv包的函数来转换
+    <summary type="html">GO数值和字符串的相互转换，借助strconv包的函数来转换
 
 1
 2
