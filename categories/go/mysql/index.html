@@ -19,7 +19,7 @@
   
   
   <link rel="icon" type="image/x-icon" href="/images/logo.jpg">
-  <title>archives [ Yushanjin&#39;s Blog ]</title>
+  <title>category: mysql [ Yushanjin&#39;s Blog ]</title>
   
     <!-- stylesheets list from config.yml -->
     
@@ -47,7 +47,7 @@
           
       
           
-            <li class="pure-menu-item actived"><a href="/archives" class="pure-menu-link">归档</a></li>
+            <li class="pure-menu-item"><a href="/archives" class="pure-menu-link">归档</a></li>
           
       
           
@@ -86,33 +86,44 @@
     
     <section class="post page archives">
       <h3 class="archive-year-wrap">
-        <a href="/archives/2020" class="archive-year">
-          2020
+        <a href="/archives/2021" class="archive-year">
+          2021
         </a>
       </h3>
       <div class="archives">
   
   <div class="archive" >
-  <a class="post-go" href="/2020/12/01/如何使用github作为Helm的chart仓库/">
+  <a class="post-go" href="/2021/02/24/go-数据库操作/">
     <div>
       <span class="date">
-        12-01
+        02-24
       </span>
       <span class="slash">/</span>
-      如何使用github作为Helm的chart仓库
+      go 数据库操作
     </div>
 
     <!--<div class="excerpt">-->
-      <!--前提条件：
-1、已安装git
-2、已注册github账户
-3、安装helm（推荐helm3，下载地址：[https://github.com/helm/helm/releases/(https://github.com/helm/helm/releases/)）
+      <!--准备测试数据
+连接MySQL
 
-操作步骤：
-1、在github创建仓库，取名为helm-chart
+1
 
 
-2、下载helm-chart仓库到本地
+mysql -uroot -proot@12345
+
+
+选择数据库test
+
+1
+2
+
+
+create database `test`;
+use test;
+
+
+创建测试用的user表和order表，并插入测试数据
+
 1
 2
 3
@@ -120,34 +131,14 @@
 5
 6
 7
+8
+9
 
 
-zj@zj-Z390-UD:~/code$ git clone https://github.com/yushanjin/helm-chart.git
-正克隆到 'helm-chart'..-->
-    <!--</div>-->
-  </a>
-
-</div>
-
-  
-  
-  <div class="archive" >
-  <a class="post-go" href="/2020/11/26/kind快速部署Kubernetes环境/">
-    <div>
-      <span class="date">
-        11-26
-      </span>
-      <span class="slash">/</span>
-      kind快速部署Kubernetes环境
-    </div>
-
-    <!--<div class="excerpt">-->
-      <!--什么是kind
-kind：Kubernetes In Docker，顾名思义，就是将kubernetes所需要的所有组件，全部部署在一个docker容器中，是一套开箱即用的kubernetes环境搭建方案。使用kind搭建的集群无法在生产中使用，但是如果你只是想在本地测试或者开发使用，不想占用太多的资源，那么使用kind是不错的选择。同样，kind还可以很方便的帮你本地的kubernetes源代码打成对应的镜像，方便测试。
-
-GitHub: https://github.com/kubernetes-sigs/kind
-
-Documentation: https://kind.sigs.k8s-->
+#创建user表
+DROP TABLE IF EXISTS `order`;
+DROP TABLE IF EXISTS `user`;
+CREATE TABLE IF NOT EXISTS `user` (`uid` SERIAL PRIMARY KEY, `name` VARCHAR(20) NOT-->
     <!--</div>-->
   </a>
 
@@ -158,10 +149,6 @@ Documentation: https://kind.sigs.k8s-->
 
     </div>
 
-    
-      <nav class="page-nav text-center">
-          <a class="extend prev" rel="prev" href="/archives/">〈</a><a class="page-number" href="/archives/">1</a><span class="page-number current">2</span>
-      </nav>
     
 
   </div>

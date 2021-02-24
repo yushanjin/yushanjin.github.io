@@ -84,6 +84,65 @@
     
 
       <article class="recent-post-item">
+        <a class="title" href="/2021/02/24/go-数据库操作/"><h2>go 数据库操作</h2></a>
+        <div class="post-meta">
+          
+          <time class="time" datetime="2021-02-23T23:31:46.000Z">
+            2021-02-24
+          </time>
+          
+          <span class="slash">/</span>
+          
+          <ul class="index-tag-list" itemprop="keywords"><li class="index-tag-list-item"><a class="index-tag-list-link" href="/tags/go/" rel="tag">go</a></li><li class="index-tag-list-item"><a class="index-tag-list-link" href="/tags/mysql/" rel="tag">mysql</a></li></ul>
+          
+
+        </div>
+
+        
+          <div class="post-excerpt">
+            准备测试数据
+连接MySQL
+
+1
+
+
+mysql -uroot -proot@12345
+
+
+选择数据库test
+
+1
+2
+
+
+create database `test`;
+use test;
+
+
+创建测试用的user表和order表，并插入测试数据
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+
+
+#创建user表
+DROP TABLE IF EXISTS `order`;
+DROP TABLE IF EXISTS `user`;
+CREATE TABLE IF NOT EXISTS `user` (`uid` SERIAL PRIMARY KEY, `name` VARCHAR(20) NOT
+          </div>
+        
+        <a class="more" href="/2021/02/24/go-数据库操作/"> 阅读全文〉</a>
+      </article>
+    
+
+      <article class="recent-post-item">
         <a class="title" href="/2021/02/08/kubernetes-with-containerd/"><h2>kubernetes with containerd</h2></a>
         <div class="post-meta">
           
@@ -515,50 +574,6 @@ EMQ X Kuiper 是 Golang 实现的轻量级物联网边缘分析、流式处理�
           </div>
         
         <a class="more" href="/2020/12/01/EMQ-X-Kuiper与EdgeX-Foundry集成实践/"> 阅读全文〉</a>
-      </article>
-    
-
-      <article class="recent-post-item">
-        <a class="title" href="/2020/12/01/如何使用github作为Helm的chart仓库/"><h2>如何使用github作为Helm的chart仓库</h2></a>
-        <div class="post-meta">
-          
-          <time class="time" datetime="2020-12-01T01:35:30.000Z">
-            2020-12-01
-          </time>
-          
-          <span class="slash">/</span>
-          
-          <ul class="index-tag-list" itemprop="keywords"><li class="index-tag-list-item"><a class="index-tag-list-link" href="/tags/GitHub/" rel="tag">GitHub</a></li><li class="index-tag-list-item"><a class="index-tag-list-link" href="/tags/helm/" rel="tag">helm</a></li></ul>
-          
-
-        </div>
-
-        
-          <div class="post-excerpt">
-            前提条件：
-1、已安装git
-2、已注册github账户
-3、安装helm（推荐helm3，下载地址：[https://github.com/helm/helm/releases/(https://github.com/helm/helm/releases/)）
-
-操作步骤：
-1、在github创建仓库，取名为helm-chart
-
-
-2、下载helm-chart仓库到本地
-1
-2
-3
-4
-5
-6
-7
-
-
-zj@zj-Z390-UD:~/code$ git clone https://github.com/yushanjin/helm-chart.git
-正克隆到 'helm-chart'..
-          </div>
-        
-        <a class="more" href="/2020/12/01/如何使用github作为Helm的chart仓库/"> 阅读全文〉</a>
       </article>
     
   </div>
