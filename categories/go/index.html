@@ -118,8 +118,8 @@ mysql -uroot -proot@12345
 2
 
 
-create database `test`;
-use test;
+CREATE DATABASE IF NOT EXISTS `test`;
+USE `test`;
 
 
 创建测试用的user表和order表，并插入测试数据
@@ -138,7 +138,7 @@ use test;
 #创建user表
 DROP TABLE IF EXISTS `order`;
 DROP TABLE IF EXISTS `user`;
-CREATE TABLE IF NOT EXISTS `user` (`uid` SERIAL PRIMARY KEY, `name` VARCHAR(20) NOT-->
+CREATE TABLE IF NOT EXISTS `user` (`uid` SERIAL PRIMARY KEY, `name`-->
     <!--</div>-->
   </a>
 
