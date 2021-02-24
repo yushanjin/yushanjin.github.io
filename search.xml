@@ -196,9 +196,7 @@ Records: 2  Duplicates: 0  Warnings: 0</code></pre>
 <p>  </code></pre></p>
 </details>
 
-
-
-<h1 id="连接数据库"><a href="#连接数据库" class="headerlink" title="连接数据库"></a>连接数据库</h1><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">	&quot;database&#x2F;sql&quot;</span><br><span class="line">	&quot;fmt&quot;</span><br><span class="line">	_ &quot;github.com&#x2F;go-sql-driver&#x2F;mysql&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">	&#x2F;&#x2F; 打开连接</span><br><span class="line">	db, err:&#x3D; sql.Open(&quot;mysql&quot;, &quot;root:root@12345@tcp(10.0.105.121:30591)&#x2F;test?charset&#x3D;utf8&quot;)</span><br><span class="line">	&#x2F;&#x2F; 打开连接  方法是 sql.Open 第一个参数是 数据库类型. 第二个是 用户名:密码@网络协议(ip:port)&#x2F;需要查询的数据库名</span><br><span class="line">	if err !&#x3D; nil &#123;</span><br><span class="line">		fmt.Println(&quot;failed to open database:&quot;, err.Error())</span><br><span class="line">		panic(err.Error())</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	defer db.Close()</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F;尝试连接数据库</span><br><span class="line">	err &#x3D; db.Ping()</span><br><span class="line">	if err !&#x3D; nil &#123;</span><br><span class="line">		fmt.Println(&quot;connect mysql failed：&quot;, err.Error())</span><br><span class="line">		panic(err.Error())</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Println(&quot;connect mysql success&quot;)</span><br></pre></td></tr></table></figure>
+<h1 id="连接数据库"><a href="#连接数据库" class="headerlink" title="连接数据库"></a>连接数据库</h1><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">    &quot;database&#x2F;sql&quot;</span><br><span class="line">    &quot;fmt&quot;</span><br><span class="line">    _ &quot;github.com&#x2F;go-sql-driver&#x2F;mysql&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">    &#x2F;&#x2F; 打开连接</span><br><span class="line">    db, err:&#x3D; sql.Open(&quot;mysql&quot;, &quot;root:root@12345@tcp(10.0.105.121:30591)&#x2F;test?charset&#x3D;utf8&quot;)</span><br><span class="line">    &#x2F;&#x2F; 打开连接  方法是 sql.Open 第一个参数是 数据库类型. 第二个是 用户名:密码@网络协议(ip:port)&#x2F;需要查询的数据库名</span><br><span class="line">    if err !&#x3D; nil &#123;</span><br><span class="line">        fmt.Println(&quot;failed to open database:&quot;, err.Error())</span><br><span class="line">        panic(err.Error())</span><br><span class="line">        return</span><br><span class="line">    &#125;</span><br><span class="line">    defer db.Close()</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;尝试连接数据库</span><br><span class="line">    err &#x3D; db.Ping()</span><br><span class="line">    if err !&#x3D; nil &#123;</span><br><span class="line">        fmt.Println(&quot;connect mysql failed：&quot;, err.Error())</span><br><span class="line">        panic(err.Error())</span><br><span class="line">        return</span><br><span class="line">    &#125;</span><br><span class="line">    fmt.Println(&quot;connect mysql success&quot;)</span><br></pre></td></tr></table></figure>
 
 <p>返回的DB对象,实际封装了一个数据库连接池,对于goroutine是线程安全的，可以放心使用。这个数据库连接池由”database/sql”包负责自动创建和回收。连接池的大小可以由SetMaxIdleConns指定。<br>需要注意的是，创建DB对象成功，并不代表已经成功的连接了数据库，数据库连接只有在真正需要的时候才会被创建。因此如果，在创建DB对象后想验证数据库连接是否有效，可以调用Ping()或者通过</p>
 <h1 id="关闭数据库"><a href="#关闭数据库" class="headerlink" title="关闭数据库"></a>关闭数据库</h1><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">defer db.Close()</span><br></pre></td></tr></table></figure>
@@ -316,11 +314,8 @@ func main() &#123;
 </details>
 
 
-
-
-<p>参考：</p>
-<p>1、[<a href="https://studygolang.com/articles/10629]https://studygolang.com/articles/10629">https://studygolang.com/articles/10629]https://studygolang.com/articles/10629</a></p>
-<p>2、[<a href="https://tutorialedge.net/golang/golang-mysql-tutorial/]https://tutorialedge.net/golang/golang-mysql-tutorial/">https://tutorialedge.net/golang/golang-mysql-tutorial/]https://tutorialedge.net/golang/golang-mysql-tutorial/</a></p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p>1、<a href="https://studygolang.com/articles/10629">https://studygolang.com/articles/10629</a></p>
+<p>2、<a href="https://tutorialedge.net/golang/golang-mysql-tutorial/">https://tutorialedge.net/golang/golang-mysql-tutorial/</a></p>
 ]]></content>
       <categories>
         <category>go</category>
