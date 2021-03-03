@@ -492,35 +492,6 @@ func main() &#123;
       </tags>
   </entry>
   <entry>
-    <title>有用的链接</title>
-    <url>/2020/12/24/%E6%9C%89%E7%94%A8%E7%9A%84%E9%93%BE%E6%8E%A5/</url>
-    <content><![CDATA[<table>
-<thead>
-<tr>
-<th>技术</th>
-<th align="right">链接</th>
-<th align="center">简介</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>SimpleCV</td>
-<td align="right"><a href="http://simplecv.org/">http://simplecv.org/</a></td>
-<td align="center">开源的机器视觉库（对OpenCV python库的封装，对python3不支持）</td>
-</tr>
-<tr>
-<td>xxx</td>
-<td align="right">$1</td>
-<td align="center">6</td>
-</tr>
-<tr>
-<td>草莓</td>
-<td align="right">$1</td>
-<td align="center">7</td>
-</tr>
-</tbody></table>
-]]></content>
-  </entry>
-  <entry>
     <title>如何配置kubernetes的pod从私有仓库拉取镜像</title>
     <url>/2020/12/01/%E5%A6%82%E4%BD%95%E9%85%8D%E7%BD%AEkubernetes%E7%9A%84pod%E4%BB%8E%E7%A7%81%E6%9C%89%E4%BB%93%E5%BA%93%E6%8B%89%E5%8F%96%E9%95%9C%E5%83%8F/</url>
     <content><![CDATA[<p>在实际使用中，用户往往搭建了自己的私有镜像仓库。kubernetes用户创建pod的过程中，如何从私有镜像仓库拉取容器镜像？</p>
@@ -564,6 +535,35 @@ func main() &#123;
         <tag>kubernetes</tag>
         <tag>docker</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>有用的链接</title>
+    <url>/2020/12/24/%E6%9C%89%E7%94%A8%E7%9A%84%E9%93%BE%E6%8E%A5/</url>
+    <content><![CDATA[<table>
+<thead>
+<tr>
+<th>技术</th>
+<th align="right">链接</th>
+<th align="center">简介</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SimpleCV</td>
+<td align="right"><a href="http://simplecv.org/">http://simplecv.org/</a></td>
+<td align="center">开源的机器视觉库（对OpenCV python库的封装，对python3不支持）</td>
+</tr>
+<tr>
+<td>xxx</td>
+<td align="right">$1</td>
+<td align="center">6</td>
+</tr>
+<tr>
+<td>草莓</td>
+<td align="right">$1</td>
+<td align="center">7</td>
+</tr>
+</tbody></table>
+]]></content>
   </entry>
   <entry>
     <title>kind快速部署Kubernetes环境</title>
