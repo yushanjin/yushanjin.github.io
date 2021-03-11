@@ -19,7 +19,7 @@
   
   
   <link rel="icon" type="image/x-icon" href="/images/logo.jpg">
-  <title>archives [ Yushanjin&#39;s Blog ]</title>
+  <title>category: harbor [ Yushanjin&#39;s Blog ]</title>
   
     <!-- stylesheets list from config.yml -->
     
@@ -47,7 +47,7 @@
           
       
           
-            <li class="pure-menu-item actived"><a href="/archives" class="pure-menu-link">归档</a></li>
+            <li class="pure-menu-item"><a href="/archives" class="pure-menu-link">归档</a></li>
           
       
           
@@ -86,132 +86,31 @@
     
     <section class="post page archives">
       <h3 class="archive-year-wrap">
-        <a href="/archives/2020" class="archive-year">
-          2020
+        <a href="/archives/2021" class="archive-year">
+          2021
         </a>
       </h3>
       <div class="archives">
   
   <div class="archive" >
-  <a class="post-go" href="/2020/12/01/如何配置kubernetes的pod从私有仓库拉取镜像/">
+  <a class="post-go" href="/2021/03/11/kubernetes部署harbor/">
     <div>
       <span class="date">
-        12-01
+        03-11
       </span>
       <span class="slash">/</span>
-      如何配置kubernetes的pod从私有仓库拉取镜像
+      kubernetes部署harbor
     </div>
 
     <!--<div class="excerpt">-->
-      <!--在实际使用中，用户往往搭建了自己的私有镜像仓库。kubernetes用户创建pod的过程中，如何从私有镜像仓库拉取容器镜像？
+      <!--本文章介绍kubernetes上部署harbor服务，且最终以http访问harbor
 
-本文重点要介绍：如何让使用secret从私有的 Docker 镜像仓库或代码仓库拉取镜像来创建 Pod
+参考：https://github.com/goharbor/harbor-helm
 
-前提条件：
- 1. kubernetes集群
-    
-    
- 2. docker私有镜像仓库或者docker hub上有Docker ID（这里使用Docker ID来演示）
-    
-    
+部署方式
+1、登录harbor主机
+在harbor主机上创建如下目录，并修改权限
 
-创建secret有两种方法：
-
- 1. 使用config.json文件
-    
-    
- 2. 直接使用用户名+密码
-    
-    
-
-生成config.-->
-    <!--</div>-->
-  </a>
-
-</div>
-
-  
-  
-  <div class="archive" >
-  <a class="post-go" href="/2020/12/01/kubernetes的python-client体验/">
-    <div>
-      <span class="date">
-        12-01
-      </span>
-      <span class="slash">/</span>
-      kubernetes的python-client体验
-    </div>
-
-    <!--<div class="excerpt">-->
-      <!--kubernetes提供了丰富的API接口，用户不仅可以通过CLI命令行去调用API接口，而且还可以通过client库方便的调用API接口
-
-https://kubernetes.io/docs/reference/using-api/client-libraries/，提供了官方支持的和社区支持的不同语言的client库
-
-本文将着重体验python版本的client库的使用
-
-源码安装
-1
-2
-3
-
-
-git clone --recursive https://github.com/kubernetes-client/python.git
-cd python
-python setup.py-->
-    <!--</div>-->
-  </a>
-
-</div>
-
-  
-  
-  <div class="archive" >
-  <a class="post-go" href="/2020/12/01/EMQ-X-Kuiper与EdgeX-Foundry集成实践/">
-    <div>
-      <span class="date">
-        12-01
-      </span>
-      <span class="slash">/</span>
-      EMQ X Kuiper与EdgeX Foundry集成实践
-    </div>
-
-    <!--<div class="excerpt">-->
-      <!--Kuiper是什么? EdgeX Foundry又是什么？
-
-Kuiper
-EMQ X Kuiper 是 Golang 实现的轻量级物联网边缘分析、流式处理开源软件，可以运行在各类资源受限的边缘设备上。Kuiper 设计的一个主要目标就是将在云端运行的实时流式计算框架（比如Apache Spark，Apache Storm和Apache Flink等）迁移到边缘端。Kuiper 参考了上述云端流式处理项目的架构与实现，结合边缘流式数据处理的特点，采用了编写基于源 (Source)，SQL (业务逻辑处理),目标 (Sink)的规则引擎来实现边缘端的流式数据处理。
-其架构如下：
-
-
- * 源 (-->
-    <!--</div>-->
-  </a>
-
-</div>
-
-  
-  
-  <div class="archive" >
-  <a class="post-go" href="/2020/12/01/如何使用github作为Helm的chart仓库/">
-    <div>
-      <span class="date">
-        12-01
-      </span>
-      <span class="slash">/</span>
-      如何使用github作为Helm的chart仓库
-    </div>
-
-    <!--<div class="excerpt">-->
-      <!--前提条件：
-1、已安装git
-2、已注册github账户
-3、安装helm（推荐helm3，下载地址：[https://github.com/helm/helm/releases/(https://github.com/helm/helm/releases/)）
-
-操作步骤：
-1、在github创建仓库，取名为helm-chart
-
-
-2、下载helm-chart仓库到本地
 1
 2
 3
@@ -219,34 +118,14 @@ EMQ X Kuiper 是 Golang 实现的轻量级物联网边缘分析、流式处理�
 5
 6
 7
+8
 
 
-zj@zj-Z390-UD:~/code$ git clone https://github.com/yushanjin/helm-chart.git
-正克隆到 'helm-chart'..-->
-    <!--</div>-->
-  </a>
-
-</div>
-
-  
-  
-  <div class="archive" >
-  <a class="post-go" href="/2020/11/26/kind快速部署Kubernetes环境/">
-    <div>
-      <span class="date">
-        11-26
-      </span>
-      <span class="slash">/</span>
-      kind快速部署Kubernetes环境
-    </div>
-
-    <!--<div class="excerpt">-->
-      <!--什么是kind
-kind：Kubernetes In Docker，顾名思义，就是将kubernetes所需要的所有组件，全部部署在一个docker容器中，是一套开箱即用的kubernetes环境搭建方案。使用kind搭建的集群无法在生产中使用，但是如果你只是想在本地测试或者开发使用，不想占用太多的资源，那么使用kind是不错的选择。同样，kind还可以很方便的帮你本地的kubernetes源代码打成对应的镜像，方便测试。
-
-GitHub: https://github.com/kubernetes-sigs/kind
-
-Documentation: https://kind.sigs.k8s-->
+mkdir -p /data/harbor/registry-data
+mkdir -p /data/harbor/trivy-data
+mkdir -p /data/harbor/job-logs
+mkdir -p /data/harbor/psc
+mkdir -p /data/harbor/cha-->
     <!--</div>-->
   </a>
 
@@ -257,10 +136,6 @@ Documentation: https://kind.sigs.k8s-->
 
     </div>
 
-    
-      <nav class="page-nav text-center">
-          <a class="extend prev" rel="prev" href="/archives/">〈</a><a class="page-number" href="/archives/">1</a><span class="page-number current">2</span>
-      </nav>
     
 
   </div>
