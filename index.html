@@ -105,9 +105,14 @@
 参考：https://github.com/goharbor/harbor-helm
 
 部署方式
-1、登录harbor主机
-在harbor主机上创建如下目录，并修改权限
+1、下载项目代码（master主机执行）
+1
 
+
+git clone https://gitee.com/yushanjin/kubernetes-harbor
+
+
+2、提前创建本地目录，并修改权限（harbor主机执行）
 1
 2
 3
@@ -120,9 +125,7 @@
 
 mkdir -p /data/harbor/registry-data
 mkdir -p /data/harbor/trivy-data
-mkdir -p /data/harbor/job-logs
-mkdir -p /data/harbor/psc
-mkdir -p /data/harbor/cha
+mkdir -
           </div>
         
         <a class="more" href="/2021/03/11/kubernetes部署harbor/"> 阅读全文〉</a>

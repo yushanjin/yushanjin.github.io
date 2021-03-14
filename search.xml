@@ -472,18 +472,19 @@ func main() &#123;
     <url>/2021/03/11/kubernetes%E9%83%A8%E7%BD%B2harbor/</url>
     <content><![CDATA[<p>本文章介绍kubernetes上部署harbor服务，且最终以http访问harbor</p>
 <p>参考：<a href="https://github.com/goharbor/harbor-helm">https://github.com/goharbor/harbor-helm</a></p>
-<h1 id="部署方式"><a href="#部署方式" class="headerlink" title="部署方式"></a>部署方式</h1><h2 id="1、登录harbor主机"><a href="#1、登录harbor主机" class="headerlink" title="1、登录harbor主机"></a>1、登录harbor主机</h2><p>在harbor主机上创建如下目录，并修改权限</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mkdir -p &#x2F;data&#x2F;harbor&#x2F;registry-data</span><br><span class="line">mkdir -p &#x2F;data&#x2F;harbor&#x2F;trivy-data</span><br><span class="line">mkdir -p &#x2F;data&#x2F;harbor&#x2F;job-logs</span><br><span class="line">mkdir -p &#x2F;data&#x2F;harbor&#x2F;psc</span><br><span class="line">mkdir -p &#x2F;data&#x2F;harbor&#x2F;chartmuseum-data</span><br><span class="line">mkdir -p &#x2F;data&#x2F;harbor&#x2F;redis-data</span><br><span class="line">mkdir -p &#x2F;data&#x2F;harbor&#x2F;database-data</span><br><span class="line">chmod 777 -R &#x2F;data&#x2F;harbor</span><br></pre></td></tr></table></figure>
+<h1 id="部署方式"><a href="#部署方式" class="headerlink" title="部署方式"></a>部署方式</h1><h2 id="1、下载项目代码（master主机执行）"><a href="#1、下载项目代码（master主机执行）" class="headerlink" title="1、下载项目代码（master主机执行）"></a>1、下载项目代码（master主机执行）</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">git clone https:&#x2F;&#x2F;gitee.com&#x2F;yushanjin&#x2F;kubernetes-harbor</span><br></pre></td></tr></table></figure>
 
-<h2 id="2、进入harbor目录，修改core-yaml配置文件，如下字段："><a href="#2、进入harbor目录，修改core-yaml配置文件，如下字段：" class="headerlink" title="2、进入harbor目录，修改core.yaml配置文件，如下字段："></a>2、进入harbor目录，修改core.yaml配置文件，如下字段：</h2><p>EXT_ENDPOINT: “<a href="http://192.168.56.129:30002&quot;">http://192.168.56.129:30002&quot;</a></p>
+<h2 id="2、提前创建本地目录，并修改权限（harbor主机执行）"><a href="#2、提前创建本地目录，并修改权限（harbor主机执行）" class="headerlink" title="2、提前创建本地目录，并修改权限（harbor主机执行）"></a>2、提前创建本地目录，并修改权限（harbor主机执行）</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mkdir -p &#x2F;data&#x2F;harbor&#x2F;registry-data</span><br><span class="line">mkdir -p &#x2F;data&#x2F;harbor&#x2F;trivy-data</span><br><span class="line">mkdir -p &#x2F;data&#x2F;harbor&#x2F;job-logs</span><br><span class="line">mkdir -p &#x2F;data&#x2F;harbor&#x2F;psc</span><br><span class="line">mkdir -p &#x2F;data&#x2F;harbor&#x2F;chartmuseum-data</span><br><span class="line">mkdir -p &#x2F;data&#x2F;harbor&#x2F;redis-data</span><br><span class="line">mkdir -p &#x2F;data&#x2F;harbor&#x2F;database-data</span><br><span class="line">chmod 777 -R &#x2F;data&#x2F;harbor</span><br></pre></td></tr></table></figure>
+
+<h2 id="3、进入harbor目录，修改core-yaml配置文件，如下字段：（master主机执行）"><a href="#3、进入harbor目录，修改core-yaml配置文件，如下字段：（master主机执行）" class="headerlink" title="3、进入harbor目录，修改core.yaml配置文件，如下字段：（master主机执行）"></a>3、进入harbor目录，修改core.yaml配置文件，如下字段：（master主机执行）</h2><p>EXT_ENDPOINT: “<a href="http://192.168.56.129:30002&quot;">http://192.168.56.129:30002&quot;</a></p>
 <p>192.168.56.129为nodeIP</p>
-<h2 id="3、打标签"><a href="#3、打标签" class="headerlink" title="3、打标签"></a>3、打标签</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl label nodes &#123;&#123;harbor节点名称&#125;&#125; app&#x3D;harbor</span><br></pre></td></tr></table></figure>
+<h2 id="4、给harbor主机打标签（master主机执行，目的是强制将harbor服务部署到harbor主机上）"><a href="#4、给harbor主机打标签（master主机执行，目的是强制将harbor服务部署到harbor主机上）" class="headerlink" title="4、给harbor主机打标签（master主机执行，目的是强制将harbor服务部署到harbor主机上）"></a>4、给harbor主机打标签（master主机执行，目的是强制将harbor服务部署到harbor主机上）</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl label nodes &#123;&#123;harbor节点名称&#125;&#125; app&#x3D;harbor</span><br></pre></td></tr></table></figure>
 
-<h2 id="4、返回harbor目录上一级，执行如下命令，创建harbor服务，待以下服务正常即可"><a href="#4、返回harbor目录上一级，执行如下命令，创建harbor服务，待以下服务正常即可" class="headerlink" title="4、返回harbor目录上一级，执行如下命令，创建harbor服务，待以下服务正常即可"></a>4、返回harbor目录上一级，执行如下命令，创建harbor服务，待以下服务正常即可</h2><p><code>kubectl apply -f harbor</code></p>
+<h2 id="5、返回harbor目录上一级，执行如下命令，创建harbor服务，待以下服务正常即可（master主机执行）"><a href="#5、返回harbor目录上一级，执行如下命令，创建harbor服务，待以下服务正常即可（master主机执行）" class="headerlink" title="5、返回harbor目录上一级，执行如下命令，创建harbor服务，待以下服务正常即可（master主机执行）"></a>5、返回harbor目录上一级，执行如下命令，创建harbor服务，待以下服务正常即可（master主机执行）</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl apply -f harbor</span><br></pre></td></tr></table></figure>
+
 <p><img src="/images/2021-03-11/harbor.png" alt="image"></p>
-<h2 id="5、浏览器登录harbor-http-nodeIP-30002-用户名-密码：admin-Harbor12345"><a href="#5、浏览器登录harbor-http-nodeIP-30002-用户名-密码：admin-Harbor12345" class="headerlink" title="5、浏览器登录harbor(http://nodeIP:30002, 用户名/密码：admin/Harbor12345)"></a>5、浏览器登录harbor(<a href="http://nodeip:30002/">http://nodeIP:30002</a>, 用户名/密码：admin/Harbor12345)</h2><p><img src="/images/2021-03-11/web.png" alt="image"></p>
-<p>6、验证push镜像</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">root@ubuntu-002:~# cat &#x2F;etc&#x2F;docker&#x2F;daemon.json </span><br><span class="line">&#123;</span><br><span class="line">  &quot;insecure-registries&quot;: [&quot;192.168.56.129:30002&quot;]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">root@ubuntu-002:~# systemctl restart docker</span><br><span class="line"></span><br><span class="line">root@ubuntu-002:~# docker login 192.168.56.129:30002</span><br><span class="line">Username: admin</span><br><span class="line">Password: </span><br><span class="line">WARNING! Your password will be stored unencrypted in &#x2F;root&#x2F;.docker&#x2F;config.json.</span><br><span class="line">Configure a credential helper to remove this warning. See</span><br><span class="line">https:&#x2F;&#x2F;docs.docker.com&#x2F;engine&#x2F;reference&#x2F;commandline&#x2F;login&#x2F;#credentials-store</span><br><span class="line"></span><br><span class="line">Login Succeeded</span><br><span class="line"></span><br><span class="line">root@ubuntu-002:~# docker tag mysql:5.7 http:&#x2F;&#x2F;192.168.56.129:30002&#x2F;zjlab&#x2F;mysql:5.7</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">zjlab为提前在harbor创建的project名字</span><br><span class="line"></span><br><span class="line">root@ubuntu-002:~# docker push 192.168.56.129:30002&#x2F;zjlab&#x2F;mysql:5.7</span><br><span class="line">The push refers to repository [192.168.56.129:30002&#x2F;zjlab&#x2F;mysql]</span><br><span class="line">bbf075073d31: Pushed </span><br><span class="line">0774d1a514a9: Pushed </span><br><span class="line">60b9eaeaaabc: Pushed </span><br><span class="line">06e3384a2b84: Pushed </span><br><span class="line">98d98806c8ac: Pushed </span><br><span class="line">0394a41efa73: Pushed </span><br><span class="line">c484a3b6d841: Pushed </span><br><span class="line">6d23902c2a54: Pushed </span><br><span class="line">74c86dffd46f: Pushed </span><br><span class="line">ef4a33cee7a0: Pushed </span><br><span class="line">cb42413394c4: Pushed </span><br><span class="line">5.7: digest: sha256:45ad5952e4f304d39aedb02caf7e0afc30a310e66f7ab60af8acf20fd4a0f54c size: 2621</span><br><span class="line"></span><br></pre></td></tr></table></figure>]]></content>
+<h2 id="6、浏览器登录harbor-http-nodeIP-30002-用户名-密码：admin-Harbor12345"><a href="#6、浏览器登录harbor-http-nodeIP-30002-用户名-密码：admin-Harbor12345" class="headerlink" title="6、浏览器登录harbor(http://nodeIP:30002, 用户名/密码：admin/Harbor12345)"></a>6、浏览器登录harbor(<a href="http://nodeip:30002/">http://nodeIP:30002</a>, 用户名/密码：admin/Harbor12345)</h2><p><img src="/images/2021-03-11/web.png" alt="image"></p>
+<h2 id="7、验证可以push镜像（任一主机均可）"><a href="#7、验证可以push镜像（任一主机均可）" class="headerlink" title="7、验证可以push镜像（任一主机均可）"></a>7、验证可以push镜像（任一主机均可）</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">root@ubuntu-002:~# cat &#x2F;etc&#x2F;docker&#x2F;daemon.json </span><br><span class="line">&#123;</span><br><span class="line">  &quot;insecure-registries&quot;: [&quot;192.168.56.129:30002&quot;]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">root@ubuntu-002:~# systemctl restart docker</span><br><span class="line"></span><br><span class="line">root@ubuntu-002:~# docker login 192.168.56.129:30002</span><br><span class="line">Username: admin</span><br><span class="line">Password: </span><br><span class="line">WARNING! Your password will be stored unencrypted in &#x2F;root&#x2F;.docker&#x2F;config.json.</span><br><span class="line">Configure a credential helper to remove this warning. See</span><br><span class="line">https:&#x2F;&#x2F;docs.docker.com&#x2F;engine&#x2F;reference&#x2F;commandline&#x2F;login&#x2F;#credentials-store</span><br><span class="line"></span><br><span class="line">Login Succeeded</span><br><span class="line"></span><br><span class="line">root@ubuntu-002:~# docker tag mysql:5.7 http:&#x2F;&#x2F;192.168.56.129:30002&#x2F;zjlab&#x2F;mysql:5.7</span><br><span class="line"></span><br><span class="line">zjlab为提前在harbor创建的project名字</span><br><span class="line"></span><br><span class="line">root@ubuntu-002:~# docker push 192.168.56.129:30002&#x2F;zjlab&#x2F;mysql:5.7</span><br><span class="line">The push refers to repository [192.168.56.129:30002&#x2F;zjlab&#x2F;mysql]</span><br><span class="line">bbf075073d31: Pushed </span><br><span class="line">0774d1a514a9: Pushed </span><br><span class="line">60b9eaeaaabc: Pushed </span><br><span class="line">06e3384a2b84: Pushed </span><br><span class="line">98d98806c8ac: Pushed </span><br><span class="line">0394a41efa73: Pushed </span><br><span class="line">c484a3b6d841: Pushed </span><br><span class="line">6d23902c2a54: Pushed </span><br><span class="line">74c86dffd46f: Pushed </span><br><span class="line">ef4a33cee7a0: Pushed </span><br><span class="line">cb42413394c4: Pushed </span><br><span class="line">5.7: digest: sha256:45ad5952e4f304d39aedb02caf7e0afc30a310e66f7ab60af8acf20fd4a0f54c size: 2621</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>harbor</category>
         <category>kubernetes</category>
@@ -516,35 +517,6 @@ func main() &#123;
         <tag>GitHub</tag>
         <tag>helm</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>有用的链接</title>
-    <url>/2020/12/24/%E6%9C%89%E7%94%A8%E7%9A%84%E9%93%BE%E6%8E%A5/</url>
-    <content><![CDATA[<table>
-<thead>
-<tr>
-<th>技术</th>
-<th align="right">链接</th>
-<th align="center">简介</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>SimpleCV</td>
-<td align="right"><a href="http://simplecv.org/">http://simplecv.org/</a></td>
-<td align="center">开源的机器视觉库（对OpenCV python库的封装，对python3不支持）</td>
-</tr>
-<tr>
-<td>xxx</td>
-<td align="right">$1</td>
-<td align="center">6</td>
-</tr>
-<tr>
-<td>草莓</td>
-<td align="right">$1</td>
-<td align="center">7</td>
-</tr>
-</tbody></table>
-]]></content>
   </entry>
   <entry>
     <title>如何配置kubernetes的pod从私有仓库拉取镜像</title>
@@ -590,6 +562,35 @@ func main() &#123;
         <tag>kubernetes</tag>
         <tag>docker</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>有用的链接</title>
+    <url>/2020/12/24/%E6%9C%89%E7%94%A8%E7%9A%84%E9%93%BE%E6%8E%A5/</url>
+    <content><![CDATA[<table>
+<thead>
+<tr>
+<th>技术</th>
+<th align="right">链接</th>
+<th align="center">简介</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SimpleCV</td>
+<td align="right"><a href="http://simplecv.org/">http://simplecv.org/</a></td>
+<td align="center">开源的机器视觉库（对OpenCV python库的封装，对python3不支持）</td>
+</tr>
+<tr>
+<td>xxx</td>
+<td align="right">$1</td>
+<td align="center">6</td>
+</tr>
+<tr>
+<td>草莓</td>
+<td align="right">$1</td>
+<td align="center">7</td>
+</tr>
+</tbody></table>
+]]></content>
   </entry>
   <entry>
     <title>kind快速部署Kubernetes环境</title>
